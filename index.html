@@ -1,0 +1,1184 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Malen nach Zahlen</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Malen">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root {
+    --bg: #0A0A0A;
+    --bg-soft: #14110F;
+    --surface: rgba(255,255,255,0.04);
+    --surface-2: rgba(255,255,255,0.08);
+    --border: rgba(255,255,255,0.10);
+    --text: #F5F1EC;
+    --text-dim: rgba(245,241,236,0.65);
+    --text-mute: rgba(245,241,236,0.45);
+    --accent: #E8651A;
+    --accent-soft: rgba(232,101,26,0.18);
+    --brown: #3D2B1A;
+    --canvas-bg: #EEEEEE;
+    --serif: ui-serif, "New York", "Times New Roman", Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    --radius: 14px;
+    --radius-lg: 20px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    touch-action: manipulation;
+    overscroll-behavior: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(40px, 7vw, 72px); line-height: 1.05; letter-spacing: -0.02em; margin: 0; }
+  h2 { font-family: var(--serif); font-weight: 500; font-size: 28px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  p { margin: 0; color: var(--text-dim); }
+  button, input[type="file"]::-webkit-file-upload-button {
+    font-family: inherit;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: inherit;
+  }
+  .screen {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column;
+    padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+  }
+  .screen.active { display: flex; }
+
+  /* ---------- START ---------- */
+  #screen-start {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 32px;
+    background:
+      radial-gradient(60% 50% at 50% 0%, rgba(232,101,26,0.10), transparent 70%),
+      var(--bg);
+  }
+  #screen-start .inner { max-width: 480px; display: flex; flex-direction: column; gap: 24px; align-items: center; }
+  #screen-start .tag { font-size: 13px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    padding: 16px 28px;
+    border-radius: 999px;
+    font-weight: 500;
+    font-size: 17px;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .btn-primary:active { transform: scale(0.97); background: #d65a14; }
+  .btn-ghost {
+    background: var(--surface);
+    color: var(--text);
+    padding: 14px 22px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    font-size: 15px;
+  }
+  .btn-ghost:active { background: var(--surface-2); }
+  .resume-list { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+  .resume-item {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    text-align: left;
+    width: 100%;
+  }
+  .resume-item img { width: 56px; height: 56px; object-fit: cover; border-radius: 10px; background: #222; }
+  .resume-item .meta { flex: 1; }
+  .resume-item .meta .name { font-size: 15px; }
+  .resume-item .meta .when { font-size: 12px; color: var(--text-mute); }
+  .resume-item .del { color: var(--text-mute); padding: 6px 10px; }
+
+  /* ---------- PREP ---------- */
+  #screen-prep { padding: 0; }
+  .prep-header, .paint-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px;
+    background: rgba(10,10,10,0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    position: relative; z-index: 10;
+  }
+  .prep-header .title, .paint-header .title { flex: 1; font-family: var(--serif); font-size: 19px; }
+  .icon-btn {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface);
+    color: var(--text);
+  }
+  .icon-btn:active { background: var(--surface-2); }
+  .icon-btn.active { background: var(--accent-soft); color: var(--accent); }
+  .icon-btn svg { width: 20px; height: 20px; }
+
+  .prep-body {
+    flex: 1; min-height: 0;
+    display: flex; flex-direction: column;
+    padding: 18px;
+    gap: 16px;
+  }
+  .preview-wrap {
+    flex: 1; min-height: 0;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .preview-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .controls {
+    display: flex; flex-direction: column; gap: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+  }
+  .control-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .control-row .label { font-size: 14px; color: var(--text-dim); }
+  .control-row .value { font-size: 14px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 4px;
+    background: var(--surface-2);
+    border-radius: 999px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(232,101,26,0.4);
+  }
+  .progress {
+    margin-top: 4px;
+    height: 4px; background: var(--surface-2); border-radius: 999px; overflow: hidden;
+    display: none;
+  }
+  .progress.active { display: block; }
+  .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
+  .progress-label { font-size: 13px; color: var(--text-mute); margin-top: 8px; text-align: center; }
+
+  /* ---------- PAINT ---------- */
+  #screen-paint { background: var(--canvas-bg); }
+  .paint-header { background: rgba(10,10,10,0.85); }
+  .paint-stage {
+    flex: 1; min-height: 0; position: relative;
+    overflow: hidden;
+    touch-action: none;
+  }
+  .paint-stage canvas {
+    position: absolute; left: 50%; top: 50%;
+    transform-origin: center center;
+    background: #fff;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+    image-rendering: auto;
+  }
+  .palette {
+    background: rgba(10,10,10,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: 10px 12px env(safe-area-inset-bottom, 12px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: flex; gap: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .palette::-webkit-scrollbar { display: none; }
+  .swatch {
+    flex: 0 0 auto;
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    position: relative;
+    border: 2px solid transparent;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .swatch.active { border-color: #fff; transform: scale(1.06); box-shadow: 0 0 0 2px var(--accent); }
+  .swatch span { mix-blend-mode: difference; color: #fff; }
+  .toolbar-floating {
+    position: absolute; left: 12px; top: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+    z-index: 5;
+  }
+  .toolbar-floating .icon-btn { background: rgba(10,10,10,0.7); color: #fff; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .toolbar-floating .icon-btn.active { background: var(--accent); color: #fff; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 140px;
+    transform: translateX(-50%);
+    background: rgba(10,10,10,0.9);
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 999px;
+    font-size: 14px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Screen 1: Start -->
+<section id="screen-start" class="screen active">
+  <div class="inner">
+    <div class="tag">Malen nach Zahlen</div>
+    <h1>Dein Foto.<br>Deine Vorlage.</h1>
+    <p>Such ein Foto aus, wir machen die Nummern. Du malst.</p>
+    <label class="btn-primary">
+      Foto wählen
+      <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none">
+    </label>
+    <div class="resume-list" id="resume-list"></div>
+  </div>
+</section>
+
+<!-- Screen 2: Prep -->
+<section id="screen-prep" class="screen">
+  <div class="prep-header">
+    <button class="icon-btn" id="prep-back" aria-label="Zurück">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="title">Vorbereitung</div>
+    <button class="btn-primary" id="generate-btn" style="padding:10px 20px;font-size:15px">Vorlage erzeugen</button>
+  </div>
+  <div class="prep-body">
+    <div class="preview-wrap"><img id="preview-img" alt=""></div>
+    <div class="controls">
+      <div class="control-row">
+        <span class="label">Detailgrad</span>
+        <span class="value" id="detail-value">24 Farben</span>
+      </div>
+      <input type="range" id="detail-slider" min="0" max="3" step="1" value="1">
+      <div class="progress" id="progress"><div class="progress-bar" id="progress-bar"></div></div>
+      <div class="progress-label hidden" id="progress-label"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Screen 3: Paint -->
+<section id="screen-paint" class="screen">
+  <div class="paint-header">
+    <button class="icon-btn" id="paint-back" aria-label="Zurück">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="title">Malen</div>
+    <button class="icon-btn" id="toggle-template" aria-label="Vorlage ein/aus" title="Vorlage">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+    </button>
+    <button class="icon-btn" id="save-btn" aria-label="Speichern">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </button>
+  </div>
+  <div class="paint-stage" id="paint-stage">
+    <div class="toolbar-floating">
+      <button class="icon-btn active" id="tool-brush" aria-label="Pinsel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.06 11.9l8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04 0-1.67-1.34-3.02-3-3.02z"/></svg>
+      </button>
+      <button class="icon-btn" id="tool-eraser" aria-label="Radiergummi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16c-.78-.78-.78-2.05 0-2.83L13.17 3a2 2 0 0 1 2.83 0L21 8a2 2 0 0 1 0 2.83L10.83 21"/><line x1="18" y1="13" x2="9" y2="4"/></svg>
+      </button>
+      <div class="control-row" style="background:rgba(10,10,10,0.7);padding:8px;border-radius:12px;flex-direction:column;align-items:stretch;gap:6px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)">
+        <input type="range" id="brush-size" min="2" max="40" step="1" value="14" style="width:90px">
+      </div>
+    </div>
+    <canvas id="canvas-template"></canvas>
+    <canvas id="canvas-paint"></canvas>
+  </div>
+  <div class="palette" id="palette"></div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   Paint-by-Numbers PWA — single-file app
+   ========================================================= */
+
+// ---------- Helpers ----------
+const $ = (sel) => document.querySelector(sel);
+const screens = { start: $('#screen-start'), prep: $('#screen-prep'), paint: $('#screen-paint') };
+function go(name) {
+  for (const k in screens) screens[k].classList.toggle('active', k === name);
+}
+function toast(msg, ms = 1800) {
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+// ---------- IndexedDB tiny wrapper ----------
+const DB_NAME = 'pbn';
+const DB_VER = 1;
+let dbp = null;
+function db() {
+  if (dbp) return dbp;
+  dbp = new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = () => {
+      const d = req.result;
+      if (!d.objectStoreNames.contains('projects')) d.createObjectStore('projects', { keyPath: 'id' });
+    };
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => rej(req.error);
+  });
+  return dbp;
+}
+async function dbPut(rec) {
+  const d = await db();
+  return new Promise((res, rej) => {
+    const tx = d.transaction('projects', 'readwrite');
+    tx.objectStore('projects').put(rec);
+    tx.oncomplete = () => res();
+    tx.onerror = () => rej(tx.error);
+  });
+}
+async function dbAll() {
+  const d = await db();
+  return new Promise((res, rej) => {
+    const tx = d.transaction('projects', 'readonly');
+    const req = tx.objectStore('projects').getAll();
+    req.onsuccess = () => res(req.result || []);
+    req.onerror = () => rej(req.error);
+  });
+}
+async function dbGet(id) {
+  const d = await db();
+  return new Promise((res, rej) => {
+    const tx = d.transaction('projects', 'readonly');
+    const req = tx.objectStore('projects').get(id);
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => rej(req.error);
+  });
+}
+async function dbDel(id) {
+  const d = await db();
+  return new Promise((res, rej) => {
+    const tx = d.transaction('projects', 'readwrite');
+    tx.objectStore('projects').delete(id);
+    tx.oncomplete = () => res();
+    tx.onerror = () => rej(tx.error);
+  });
+}
+
+// ---------- State ----------
+const state = {
+  origImageBitmap: null,   // ImageBitmap des Originals
+  origDataURL: null,       // gespeicherte DataURL
+  width: 0, height: 0,     // verarbeitete Dimensionen
+  palette: [],             // [{nr, r, g, b, hex}]
+  templateBitmap: null,    // ImageBitmap der Vorlage (schwarze Linien + Zahlen + transparenter Hintergrund)
+  paintBitmap: null,       // bisher gemaltes (oder null)
+  activeColor: null,
+  tool: 'brush',
+  brushSize: 14,
+  templateVisible: true,
+  projectId: null,
+  zoom: 1,
+  panX: 0, panY: 0,
+};
+
+// ---------- Start screen ----------
+$('#file-input').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  await loadFromFile(file);
+});
+
+async function loadFromFile(file) {
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.src = url;
+  await img.decode();
+  // skaliere auf max. 1600 px Längsseite (Performance auf iPad)
+  const MAX = 1600;
+  const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+  const w = Math.round(img.width * scale);
+  const h = Math.round(img.height * scale);
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0, w, h);
+  state.origDataURL = c.toDataURL('image/jpeg', 0.85);
+  state.width = w; state.height = h;
+  state.origImageBitmap = await createImageBitmap(c);
+  $('#preview-img').src = state.origDataURL;
+  go('prep');
+  URL.revokeObjectURL(url);
+}
+
+async function renderResumeList() {
+  const items = await dbAll();
+  items.sort((a, b) => b.updatedAt - a.updatedAt);
+  const wrap = $('#resume-list');
+  wrap.innerHTML = '';
+  if (!items.length) return;
+  for (const it of items.slice(0, 6)) {
+    const row = document.createElement('div');
+    row.className = 'resume-item';
+    const img = document.createElement('img');
+    img.src = it.thumb || it.origDataURL;
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const ago = formatAgo(Date.now() - it.updatedAt);
+    meta.innerHTML = `<div class="name">${it.name || 'Projekt'}</div><div class="when">${ago}</div>`;
+    const open = document.createElement('button');
+    open.className = 'btn-ghost';
+    open.style.padding = '8px 14px'; open.style.fontSize = '13px';
+    open.textContent = 'Öffnen';
+    open.addEventListener('click', () => resumeProject(it.id));
+    const del = document.createElement('button');
+    del.className = 'del';
+    del.innerHTML = '✕';
+    del.addEventListener('click', async (e) => { e.stopPropagation(); await dbDel(it.id); renderResumeList(); });
+    row.appendChild(img);
+    row.appendChild(meta);
+    row.appendChild(open);
+    row.appendChild(del);
+    wrap.appendChild(row);
+  }
+}
+function formatAgo(ms) {
+  const s = Math.round(ms / 1000);
+  if (s < 60) return 'gerade eben';
+  const m = Math.round(s / 60);
+  if (m < 60) return `vor ${m} min`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `vor ${h} h`;
+  const d = Math.round(h / 24);
+  return `vor ${d} Tagen`;
+}
+
+async function resumeProject(id) {
+  const p = await dbGet(id);
+  if (!p) return;
+  state.projectId = p.id;
+  state.width = p.width; state.height = p.height;
+  state.palette = p.palette;
+  state.origDataURL = p.origDataURL;
+  // Bitmaps rekonstruieren
+  state.templateBitmap = await blobToBitmap(p.templateBlob);
+  state.paintBitmap = p.paintBlob ? await blobToBitmap(p.paintBlob) : null;
+  setupPaint();
+  go('paint');
+}
+async function blobToBitmap(blob) {
+  return await createImageBitmap(blob);
+}
+
+// ---------- Prep screen ----------
+const DETAIL_OPTIONS = [12, 24, 36, 50];
+$('#detail-slider').addEventListener('input', () => {
+  const v = +$('#detail-slider').value;
+  $('#detail-value').textContent = DETAIL_OPTIONS[v] + ' Farben';
+});
+$('#prep-back').addEventListener('click', () => go('start'));
+
+$('#generate-btn').addEventListener('click', async () => {
+  const k = DETAIL_OPTIONS[+$('#detail-slider').value];
+  $('#generate-btn').disabled = true;
+  $('#progress').classList.add('active');
+  $('#progress-label').classList.remove('hidden');
+  await generateTemplate(k);
+  $('#generate-btn').disabled = false;
+  $('#progress').classList.remove('active');
+  $('#progress-label').classList.add('hidden');
+});
+
+// ---------- Worker (inline) ----------
+const workerSrc = `
+self.onmessage = async (e) => {
+  const { imageData, k } = e.data;
+  try {
+    const { palette, idMap, w, h } = quantize(imageData, k, (p) => post('progress', { stage: 'Farben analysieren', p }));
+    smoothIDs(idMap, w, h);
+    post('progress', { stage: 'Regionen formen', p: 0.55 });
+    const { regions, regionMap } = labelRegions(idMap, w, h);
+    post('progress', { stage: 'Kleine Felder zusammenführen', p: 0.7 });
+    mergeTiny(regions, regionMap, idMap, w, h, 120);
+    post('progress', { stage: 'Konturen + Zahlen', p: 0.85 });
+    const numbered = makeNumbering(regions, idMap);
+    const out = render(w, h, idMap, regionMap, palette, numbered);
+    post('progress', { stage: 'Fertig', p: 1 });
+    post('done', { palette: numbered.palette, paletteRGB: palette, w, h, lineImage: out.lineImage, numbers: numbered.numbers });
+  } catch (err) {
+    post('error', { message: String(err && err.message || err) });
+  }
+};
+function post(type, payload) { self.postMessage({ type, payload }); }
+
+// --- color helpers ---
+function srgbToLin(c) { c /= 255; return c <= 0.04045 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); }
+function rgbToLab(r,g,b) {
+  const R = srgbToLin(r), G = srgbToLin(g), B = srgbToLin(b);
+  let X = R*0.4124 + G*0.3576 + B*0.1805;
+  let Y = R*0.2126 + G*0.7152 + B*0.0722;
+  let Z = R*0.0193 + G*0.1192 + B*0.9505;
+  X /= 0.95047; Y /= 1.0; Z /= 1.08883;
+  const f = (t) => t > 0.008856 ? Math.cbrt(t) : (7.787*t + 16/116);
+  const fx = f(X), fy = f(Y), fz = f(Z);
+  return [116*fy - 16, 500*(fx-fy), 200*(fy-fz)];
+}
+
+// --- k-means in LAB ---
+function quantize(imageData, k, onProgress) {
+  const { data, width: w, height: h } = imageData;
+  const N = w * h;
+  const lab = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const o = i * 4;
+    const [L,a,b] = rgbToLab(data[o], data[o+1], data[o+2]);
+    lab[i*3]=L; lab[i*3+1]=a; lab[i*3+2]=b;
+  }
+  // kmeans++ init
+  const cents = new Float32Array(k*3);
+  const firstIdx = (Math.random()*N)|0;
+  cents[0]=lab[firstIdx*3]; cents[1]=lab[firstIdx*3+1]; cents[2]=lab[firstIdx*3+2];
+  const dist = new Float32Array(N);
+  for (let i = 0; i < N; i++) dist[i] = labDist2(lab, i, cents, 0);
+  for (let c = 1; c < k; c++) {
+    let sum = 0; for (let i = 0; i < N; i++) sum += dist[i];
+    let pick = Math.random()*sum, acc = 0, idx = N-1;
+    for (let i = 0; i < N; i++) { acc += dist[i]; if (acc >= pick) { idx = i; break; } }
+    cents[c*3]=lab[idx*3]; cents[c*3+1]=lab[idx*3+1]; cents[c*3+2]=lab[idx*3+2];
+    for (let i = 0; i < N; i++) {
+      const dd = labDist2(lab, i, cents, c);
+      if (dd < dist[i]) dist[i] = dd;
+    }
+  }
+  // Lloyd iterations
+  const idMap = new Uint16Array(N);
+  const sumL = new Float64Array(k), sumA = new Float64Array(k), sumB = new Float64Array(k);
+  const cnt = new Uint32Array(k);
+  const ITERS = 12;
+  for (let it = 0; it < ITERS; it++) {
+    onProgress((it+1)/ITERS * 0.5);
+    sumL.fill(0); sumA.fill(0); sumB.fill(0); cnt.fill(0);
+    for (let i = 0; i < N; i++) {
+      let best = 0, bestD = Infinity;
+      for (let c = 0; c < k; c++) {
+        const d = labDist2(lab, i, cents, c);
+        if (d < bestD) { bestD = d; best = c; }
+      }
+      idMap[i] = best;
+      sumL[best] += lab[i*3]; sumA[best] += lab[i*3+1]; sumB[best] += lab[i*3+2];
+      cnt[best]++;
+    }
+    for (let c = 0; c < k; c++) {
+      if (cnt[c] > 0) {
+        cents[c*3] = sumL[c]/cnt[c];
+        cents[c*3+1] = sumA[c]/cnt[c];
+        cents[c*3+2] = sumB[c]/cnt[c];
+      }
+    }
+  }
+  // Final RGB-Palette als Mittel der zugewiesenen Original-Pixel
+  const sumR = new Float64Array(k), sumG = new Float64Array(k), sumBb = new Float64Array(k);
+  cnt.fill(0);
+  for (let i = 0; i < N; i++) {
+    const c = idMap[i], o = i*4;
+    sumR[c] += data[o]; sumG[c] += data[o+1]; sumBb[c] += data[o+2]; cnt[c]++;
+  }
+  const palette = [];
+  for (let c = 0; c < k; c++) {
+    if (cnt[c] === 0) { palette.push({ r: 128, g: 128, b: 128 }); continue; }
+    palette.push({ r: Math.round(sumR[c]/cnt[c]), g: Math.round(sumG[c]/cnt[c]), b: Math.round(sumBb[c]/cnt[c]) });
+  }
+  return { palette, idMap, w, h };
+}
+function labDist2(lab, i, cents, c) {
+  const dl = lab[i*3]-cents[c*3], da = lab[i*3+1]-cents[c*3+1], db = lab[i*3+2]-cents[c*3+2];
+  return dl*dl + da*da + db*db;
+}
+
+// --- median filter on ID map (3x3, majority) ---
+function smoothIDs(idMap, w, h) {
+  const out = new Uint16Array(idMap.length);
+  const counts = new Map();
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      counts.clear();
+      let best = idMap[y*w+x], bestC = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        const yy = y+dy; if (yy < 0 || yy >= h) continue;
+        for (let dx = -1; dx <= 1; dx++) {
+          const xx = x+dx; if (xx < 0 || xx >= w) continue;
+          const v = idMap[yy*w+xx];
+          const c = (counts.get(v) || 0) + 1;
+          counts.set(v, c);
+          if (c > bestC) { bestC = c; best = v; }
+        }
+      }
+      out[y*w+x] = best;
+    }
+  }
+  idMap.set(out);
+}
+
+// --- connected components ---
+function labelRegions(idMap, w, h) {
+  const N = w*h;
+  const regionMap = new Int32Array(N).fill(-1);
+  const regions = []; // { id, colorId, pixels: number, bbox: [x0,y0,x1,y1] }
+  const stack = new Int32Array(N);
+  let regionId = 0;
+  for (let i = 0; i < N; i++) {
+    if (regionMap[i] !== -1) continue;
+    const colorId = idMap[i];
+    let sp = 0;
+    stack[sp++] = i;
+    regionMap[i] = regionId;
+    let pixels = 0;
+    let x0 = w, y0 = h, x1 = -1, y1 = -1;
+    while (sp > 0) {
+      const p = stack[--sp];
+      pixels++;
+      const x = p % w, y = (p / w) | 0;
+      if (x < x0) x0 = x; if (x > x1) x1 = x;
+      if (y < y0) y0 = y; if (y > y1) y1 = y;
+      // 4-Nachbarn
+      if (x > 0)   { const q = p-1; if (regionMap[q] === -1 && idMap[q] === colorId) { regionMap[q] = regionId; stack[sp++] = q; } }
+      if (x < w-1) { const q = p+1; if (regionMap[q] === -1 && idMap[q] === colorId) { regionMap[q] = regionId; stack[sp++] = q; } }
+      if (y > 0)   { const q = p-w; if (regionMap[q] === -1 && idMap[q] === colorId) { regionMap[q] = regionId; stack[sp++] = q; } }
+      if (y < h-1) { const q = p+w; if (regionMap[q] === -1 && idMap[q] === colorId) { regionMap[q] = regionId; stack[sp++] = q; } }
+    }
+    regions.push({ id: regionId, colorId, pixels, bbox: [x0,y0,x1,y1] });
+    regionId++;
+  }
+  return { regions, regionMap };
+}
+
+// --- merge tiny regions into largest neighbor ---
+function mergeTiny(regions, regionMap, idMap, w, h, minPx) {
+  const N = w*h;
+  const remap = new Int32Array(regions.length);
+  for (let i = 0; i < regions.length; i++) remap[i] = i;
+  // iterativ kleine Regionen verschmelzen
+  let changed = true;
+  let passes = 0;
+  while (changed && passes < 3) {
+    changed = false;
+    passes++;
+    for (const r of regions) {
+      if (r.pixels >= minPx || r.pixels === 0) continue;
+      // finde häufigsten Nachbar-Color (außer eigene)
+      const counts = new Map();
+      const [x0,y0,x1,y1] = r.bbox;
+      for (let y = y0; y <= y1; y++) {
+        for (let x = x0; x <= x1; x++) {
+          const p = y*w+x;
+          if (resolve(remap, regionMap[p]) !== r.id) continue;
+          // Nachbar-Pixel
+          const neigh = [];
+          if (x > 0)   neigh.push(p-1);
+          if (x < w-1) neigh.push(p+1);
+          if (y > 0)   neigh.push(p-w);
+          if (y < h-1) neigh.push(p+w);
+          for (const q of neigh) {
+            const qr = resolve(remap, regionMap[q]);
+            if (qr !== r.id) {
+              const c = (counts.get(qr) || 0) + 1;
+              counts.set(qr, c);
+            }
+          }
+        }
+      }
+      if (counts.size === 0) continue;
+      let bestR = -1, bestC = -1;
+      counts.forEach((cnt, rid) => { if (cnt > bestC) { bestC = cnt; bestR = rid; } });
+      if (bestR >= 0) {
+        // merge r -> bestR
+        const target = regions[bestR];
+        target.pixels += r.pixels;
+        target.bbox = [
+          Math.min(target.bbox[0], r.bbox[0]), Math.min(target.bbox[1], r.bbox[1]),
+          Math.max(target.bbox[2], r.bbox[2]), Math.max(target.bbox[3], r.bbox[3]),
+        ];
+        // idMap & remap
+        const tCol = target.colorId;
+        for (let y = r.bbox[1]; y <= r.bbox[3]; y++) {
+          for (let x = r.bbox[0]; x <= r.bbox[2]; x++) {
+            const p = y*w+x;
+            if (resolve(remap, regionMap[p]) === r.id) {
+              idMap[p] = tCol;
+            }
+          }
+        }
+        remap[r.id] = bestR;
+        r.pixels = 0;
+        changed = true;
+      }
+    }
+  }
+  // regionMap final auflösen
+  for (let p = 0; p < N; p++) regionMap[p] = resolve(remap, regionMap[p]);
+}
+function resolve(remap, id) {
+  while (remap[id] !== id) id = remap[id];
+  return id;
+}
+
+// --- numbering: pro Region die Color-ID -> Nummer (1..M), und Zahlen-Position ---
+function makeNumbering(regions, idMap) {
+  // sammle aktiv genutzte color-IDs (in absteigender Häufigkeit)
+  const colorCount = new Map();
+  for (const r of regions) {
+    if (r.pixels === 0) continue;
+    colorCount.set(r.colorId, (colorCount.get(r.colorId) || 0) + r.pixels);
+  }
+  const sortedColors = [...colorCount.entries()].sort((a,b) => b[1]-a[1]).map(([cid]) => cid);
+  const colorToNum = new Map();
+  sortedColors.forEach((cid, i) => colorToNum.set(cid, i+1));
+  // baue palette als sortiertes Array
+  // (Färben kommt im Hauptthread, hier nur Mapping)
+  // Zahlen-Positionen: nimm Zentrum mit größter Distanz zu allen anderen Regionen
+  const numbers = [];
+  for (const r of regions) {
+    if (r.pixels === 0 || r.pixels < 50) continue; // sehr kleine Regionen: keine Nummer
+    numbers.push({ regionId: r.id, colorId: r.colorId, num: colorToNum.get(r.colorId), bbox: r.bbox });
+  }
+  return { colorToNum, sortedColors, palette: sortedColors, numbers };
+}
+
+// --- render edges (RGBA) + Zahlen kommen im Hauptthread, hier nur Linien ---
+function render(w, h, idMap, regionMap, paletteRGB, numbered) {
+  const lineImage = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const p = y*w+x;
+      let edge = false;
+      const v = idMap[p];
+      if (x < w-1 && idMap[p+1] !== v) edge = true;
+      else if (y < h-1 && idMap[p+w] !== v) edge = true;
+      else if (x === 0 || x === w-1 || y === 0 || y === h-1) edge = true;
+      const o = p*4;
+      if (edge) {
+        lineImage[o] = 0; lineImage[o+1] = 0; lineImage[o+2] = 0; lineImage[o+3] = 255;
+      } else {
+        lineImage[o] = 0; lineImage[o+1] = 0; lineImage[o+2] = 0; lineImage[o+3] = 0;
+      }
+    }
+  }
+  return { lineImage };
+}
+`;
+const workerURL = URL.createObjectURL(new Blob([workerSrc], { type: 'application/javascript' }));
+
+async function generateTemplate(k) {
+  // ImageData ermitteln
+  const w = state.width, h = state.height;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(state.origImageBitmap, 0, 0);
+  const imageData = ctx.getImageData(0, 0, w, h);
+
+  await new Promise((resolve, reject) => {
+    const wk = new Worker(workerURL);
+    wk.onmessage = (e) => {
+      const { type, payload } = e.data;
+      if (type === 'progress') {
+        $('#progress-bar').style.width = (payload.p * 100) + '%';
+        $('#progress-label').textContent = payload.stage;
+      } else if (type === 'done') {
+        finishTemplate(payload).then(resolve).catch(reject);
+        wk.terminate();
+      } else if (type === 'error') {
+        toast('Fehler: ' + payload.message);
+        reject(new Error(payload.message));
+        wk.terminate();
+      }
+    };
+    wk.onerror = (err) => { toast('Worker-Fehler'); reject(err); };
+    wk.postMessage({ imageData, k }, [imageData.data.buffer]);
+  });
+}
+
+async function finishTemplate(payload) {
+  const { palette: sortedColorIds, paletteRGB, w, h, lineImage, numbers } = payload;
+  // paletteRGB[colorId] = { r, g, b }  -> direkter Mittelwert aus k-Means im Worker, robust auch für konkave Regionen
+  const finalPalette = sortedColorIds.map((cid, i) => {
+    const rgb = paletteRGB[cid] || { r: 128, g: 128, b: 128 };
+    return { nr: i+1, colorId: cid, r: rgb.r, g: rgb.g, b: rgb.b, hex: rgbToHex(rgb.r, rgb.g, rgb.b) };
+  });
+
+  // Vorlage zeichnen: weißer Hintergrund + Linien + Nummern
+  const tplCanvas = document.createElement('canvas');
+  tplCanvas.width = w; tplCanvas.height = h;
+  const tctx = tplCanvas.getContext('2d');
+  // Linien (transparenter Hintergrund, später transparent über paint-canvas)
+  const lineImg = new ImageData(lineImage, w, h);
+  tctx.putImageData(lineImg, 0, 0);
+  // Zahlen drauf
+  tctx.fillStyle = '#000';
+  for (const n of numbers) {
+    const [x0,y0,x1,y1] = n.bbox;
+    const cw = x1-x0+1, ch = y1-y0+1;
+    const sz = Math.max(8, Math.min(cw, ch) * 0.35);
+    if (sz < 7) continue; // zu klein
+    tctx.font = `${Math.round(sz)}px -apple-system, sans-serif`;
+    tctx.textAlign = 'center';
+    tctx.textBaseline = 'middle';
+    const cx = (x0 + x1) / 2;
+    const cy = (y0 + y1) / 2;
+    // weißer outline trick: zeichne mehrfach weiß, dann schwarz
+    tctx.lineWidth = Math.max(2, sz * 0.18);
+    tctx.strokeStyle = 'rgba(255,255,255,0.8)';
+    tctx.strokeText(String(n.num), cx, cy);
+    tctx.fillStyle = '#000';
+    tctx.fillText(String(n.num), cx, cy);
+  }
+
+  state.palette = finalPalette;
+  state.width = w; state.height = h;
+  state.templateBitmap = await createImageBitmap(tplCanvas);
+  state.paintBitmap = null;
+  state.projectId = 'p_' + Date.now();
+
+  // Speichern
+  const templateBlob = await new Promise(res => tplCanvas.toBlob(b => res(b), 'image/png'));
+  await dbPut({
+    id: state.projectId,
+    name: 'Projekt ' + new Date().toLocaleDateString('de-DE'),
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    width: w, height: h,
+    palette: finalPalette,
+    origDataURL: state.origDataURL,
+    thumb: state.origDataURL,
+    templateBlob,
+    paintBlob: null,
+  });
+
+  setupPaint();
+  go('paint');
+}
+
+function rgbToHex(r,g,b) {
+  return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
+}
+
+// ---------- Paint screen ----------
+function setupPaint() {
+  const stage = $('#paint-stage');
+  const tpl = $('#canvas-template');
+  const paint = $('#canvas-paint');
+  tpl.width = state.width; tpl.height = state.height;
+  paint.width = state.width; paint.height = state.height;
+  const tctx = tpl.getContext('2d');
+  tctx.clearRect(0,0,state.width, state.height);
+  tctx.drawImage(state.templateBitmap, 0, 0);
+  const pctx = paint.getContext('2d');
+  pctx.fillStyle = '#ffffff';
+  pctx.fillRect(0,0,state.width, state.height);
+  if (state.paintBitmap) pctx.drawImage(state.paintBitmap, 0, 0);
+
+  // Fit zoom
+  fitCanvas();
+  buildPalette();
+  bindPaintEvents();
+}
+
+function fitCanvas() {
+  const stage = $('#paint-stage');
+  const rect = stage.getBoundingClientRect();
+  const scale = Math.min(rect.width / state.width, rect.height / state.height) * 0.95;
+  state.zoom = scale;
+  state.panX = 0;
+  state.panY = 0;
+  applyTransform();
+}
+
+function applyTransform() {
+  for (const c of [$('#canvas-template'), $('#canvas-paint')]) {
+    c.style.width = state.width + 'px';
+    c.style.height = state.height + 'px';
+    c.style.transform = `translate(-50%, -50%) translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
+  }
+  $('#canvas-template').style.opacity = state.templateVisible ? '1' : '0';
+  $('#canvas-template').style.pointerEvents = 'none';
+  $('#canvas-template').style.mixBlendMode = 'multiply';
+  $('#canvas-template').style.zIndex = '2';
+  $('#canvas-paint').style.zIndex = '1';
+}
+
+function buildPalette() {
+  const wrap = $('#palette');
+  wrap.innerHTML = '';
+  for (const p of state.palette) {
+    const b = document.createElement('button');
+    b.className = 'swatch';
+    b.style.background = p.hex;
+    const lab = document.createElement('span');
+    lab.textContent = p.nr;
+    b.appendChild(lab);
+    b.addEventListener('click', () => {
+      state.activeColor = p;
+      for (const el of wrap.querySelectorAll('.swatch')) el.classList.remove('active');
+      b.classList.add('active');
+    });
+    wrap.appendChild(b);
+  }
+  if (state.palette.length) {
+    state.activeColor = state.palette[0];
+    wrap.firstChild.classList.add('active');
+  }
+}
+
+let drawState = null; // { lastX, lastY, pressure }
+function bindPaintEvents() {
+  const paint = $('#canvas-paint');
+  const stage = $('#paint-stage');
+  // Doppel-Pointer = Pan/Zoom
+  const pointers = new Map();
+
+  function canvasCoords(e) {
+    const rect = paint.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width * state.width;
+    const y = (e.clientY - rect.top) / rect.height * state.height;
+    return { x, y };
+  }
+
+  function startStroke(e) {
+    if (!state.activeColor && state.tool === 'brush') return;
+    const { x, y } = canvasCoords(e);
+    drawState = { lastX: x, lastY: y };
+    drawDot(x, y, e.pressure || 0.5);
+  }
+  function moveStroke(e) {
+    if (!drawState) return;
+    const { x, y } = canvasCoords(e);
+    drawLine(drawState.lastX, drawState.lastY, x, y, e.pressure || 0.5);
+    drawState.lastX = x; drawState.lastY = y;
+  }
+  function endStroke() {
+    drawState = null;
+    autosave();
+  }
+
+  stage.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'touch' && pointers.size === 0) {
+      pointers.set(e.pointerId, e);
+      // Touch wartet, ob 2. Finger kommt
+      return;
+    }
+    pointers.set(e.pointerId, e);
+    if (pointers.size >= 2) {
+      // Pinch start
+      drawState = null;
+      gestureStart();
+      return;
+    }
+    if (e.pointerType === 'pen' || (e.pointerType === 'touch' && pointers.size === 1 && !penLikely())) {
+      stage.setPointerCapture(e.pointerId);
+      startStroke(e);
+    }
+  });
+  stage.addEventListener('pointermove', (e) => {
+    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, e);
+    if (pointers.size >= 2) { gestureMove(); return; }
+    if (drawState) moveStroke(e);
+  });
+  function endP(e) {
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2 && drawState === null) endGesture();
+    if (drawState && pointers.size === 0) endStroke();
+  }
+  stage.addEventListener('pointerup', endP);
+  stage.addEventListener('pointercancel', endP);
+  stage.addEventListener('pointerleave', endP);
+
+  // Gestures
+  let gs = null;
+  function gestureStart() {
+    const ps = [...pointers.values()];
+    if (ps.length < 2) return;
+    const [a, b] = ps;
+    gs = {
+      d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
+      mx: (a.clientX + b.clientX) / 2,
+      my: (a.clientY + b.clientY) / 2,
+      zoom0: state.zoom,
+      panX0: state.panX,
+      panY0: state.panY,
+    };
+  }
+  function gestureMove() {
+    if (!gs) return;
+    const ps = [...pointers.values()];
+    if (ps.length < 2) return;
+    const [a, b] = ps;
+    const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    const mx = (a.clientX + b.clientX) / 2;
+    const my = (a.clientY + b.clientY) / 2;
+    const z = gs.zoom0 * (d / gs.d);
+    state.zoom = Math.max(0.2, Math.min(8, z));
+    state.panX = gs.panX0 + (mx - gs.mx);
+    state.panY = gs.panY0 + (my - gs.my);
+    applyTransform();
+  }
+  function endGesture() { gs = null; }
+  function penLikely() {
+    // Wenn iPad ohne Pencil: erlaube Touch-Malen für Tests. Auf Pencil-Geräten nur 'pen' lassen.
+    return false;
+  }
+}
+
+function drawDot(x, y, pressure) {
+  const ctx = $('#canvas-paint').getContext('2d');
+  const r = baseRadius(pressure);
+  if (state.tool === 'eraser') {
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fillStyle = '#000';
+    ctx.fill();
+    ctx.restore();
+    // Hintergrund wieder weiß
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+    return;
+  }
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI*2);
+  ctx.fillStyle = state.activeColor.hex;
+  ctx.fill();
+}
+function drawLine(x0, y0, x1, y1, pressure) {
+  const ctx = $('#canvas-paint').getContext('2d');
+  const r = baseRadius(pressure);
+  if (state.tool === 'eraser') {
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.lineWidth = r*2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.strokeStyle = '#000';
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+  ctx.lineWidth = r*2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = state.activeColor.hex;
+  ctx.beginPath();
+  ctx.moveTo(x0, y0);
+  ctx.lineTo(x1, y1);
+  ctx.stroke();
+}
+function baseRadius(pressure) {
+  // pressure 0..1 (Pencil liefert echte Werte, Touch i.d.R. 0.5)
+  const p = pressure > 0 ? pressure : 0.5;
+  return Math.max(1, state.brushSize * (0.5 + p));
+}
+
+let autosaveTimer = null;
+function autosave() {
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(async () => {
+    const canvas = $('#canvas-paint');
+    const blob = await new Promise(res => canvas.toBlob(b => res(b), 'image/png'));
+    if (!state.projectId) return;
+    const p = await dbGet(state.projectId);
+    if (!p) return;
+    p.paintBlob = blob;
+    p.updatedAt = Date.now();
+    await dbPut(p);
+  }, 800);
+}
+
+// Toolbar
+$('#tool-brush').addEventListener('click', () => {
+  state.tool = 'brush';
+  $('#tool-brush').classList.add('active');
+  $('#tool-eraser').classList.remove('active');
+});
+$('#tool-eraser').addEventListener('click', () => {
+  state.tool = 'eraser';
+  $('#tool-eraser').classList.add('active');
+  $('#tool-brush').classList.remove('active');
+});
+$('#brush-size').addEventListener('input', (e) => {
+  state.brushSize = +e.target.value;
+});
+$('#toggle-template').addEventListener('click', () => {
+  state.templateVisible = !state.templateVisible;
+  applyTransform();
+  toast(state.templateVisible ? 'Vorlage an' : 'Vorlage aus');
+});
+$('#paint-back').addEventListener('click', async () => { await autosave(); go('start'); renderResumeList(); });
+$('#save-btn').addEventListener('click', async () => {
+  // Compose & download
+  const out = document.createElement('canvas');
+  out.width = state.width; out.height = state.height;
+  const c = out.getContext('2d');
+  c.drawImage($('#canvas-paint'), 0, 0);
+  if (state.templateVisible) {
+    c.globalCompositeOperation = 'multiply';
+    c.drawImage($('#canvas-template'), 0, 0);
+    c.globalCompositeOperation = 'source-over';
+  }
+  out.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'malen-' + Date.now() + '.png';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, 'image/png');
+  toast('Bild gespeichert');
+});
+
+window.addEventListener('resize', () => {
+  if (screens.paint.classList.contains('active')) fitCanvas();
+});
+
+// Init
+renderResumeList();
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
