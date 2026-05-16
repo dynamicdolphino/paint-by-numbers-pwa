@@ -1,7 +1,7 @@
 {
-  "name": "Malen nach Zahlen",
-  "short_name": "Malen",
-  "description": "Foto rein, Vorlage raus, mit dem Pencil drüber malen.",
+  "name": "Paint by Numbers",
+  "short_name": "Paint",
+  "description": "Drop in a photo, get a numbered template, paint over it with your Apple Pencil.",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "any",

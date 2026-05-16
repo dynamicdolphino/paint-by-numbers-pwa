@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Malen nach Zahlen</title>
+<title>Paint by Numbers</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Malen">
+<meta name="apple-mobile-web-app-title" content="Paint">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
@@ -187,12 +187,22 @@
     flex: 1; min-height: 0; position: relative;
     overflow: hidden;
     touch-action: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .paint-stage canvas {
-    position: absolute; left: 50%; top: 50%;
+  .canvas-stack {
+    position: relative;
+    flex-shrink: 0;
     transform-origin: center center;
     background: #fff;
     box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+    will-change: transform;
+  }
+  .canvas-stack canvas {
+    position: absolute;
+    left: 0; top: 0;
+    display: block;
     image-rendering: auto;
   }
   .palette {
@@ -252,12 +262,12 @@
 <!-- Screen 1: Start -->
 <section id="screen-start" class="screen active">
   <div class="inner">
-    <div class="tag">Malen nach Zahlen</div>
-    <h1>Dein Foto.<br>Deine Vorlage.</h1>
-    <p>Such ein Foto aus, wir machen die Nummern. Du malst.</p>
+    <div class="tag">Paint by Numbers</div>
+    <h1>Your photo.<br>Your template.</h1>
+    <p>Pick a photo. We make the numbers. You paint.</p>
     <label class="btn-primary">
-      Foto wählen
-      <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none">
+      Choose photo
+      <input type="file" id="file-input" accept="image/*" style="display:none">
     </label>
     <div class="resume-list" id="resume-list"></div>
   </div>
@@ -266,18 +276,18 @@
 <!-- Screen 2: Prep -->
 <section id="screen-prep" class="screen">
   <div class="prep-header">
-    <button class="icon-btn" id="prep-back" aria-label="Zurück">
+    <button class="icon-btn" id="prep-back" aria-label="Back">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
-    <div class="title">Vorbereitung</div>
-    <button class="btn-primary" id="generate-btn" style="padding:10px 20px;font-size:15px">Vorlage erzeugen</button>
+    <div class="title">Setup</div>
+    <button class="btn-primary" id="generate-btn" style="padding:10px 20px;font-size:15px">Generate template</button>
   </div>
   <div class="prep-body">
     <div class="preview-wrap"><img id="preview-img" alt=""></div>
     <div class="controls">
       <div class="control-row">
-        <span class="label">Detailgrad</span>
-        <span class="value" id="detail-value">24 Farben</span>
+        <span class="label">Detail level</span>
+        <span class="value" id="detail-value">24 colors</span>
       </div>
       <input type="range" id="detail-slider" min="0" max="3" step="1" value="1">
       <div class="progress" id="progress"><div class="progress-bar" id="progress-bar"></div></div>
@@ -289,31 +299,33 @@
 <!-- Screen 3: Paint -->
 <section id="screen-paint" class="screen">
   <div class="paint-header">
-    <button class="icon-btn" id="paint-back" aria-label="Zurück">
+    <button class="icon-btn" id="paint-back" aria-label="Back">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
-    <div class="title">Malen</div>
-    <button class="icon-btn" id="toggle-template" aria-label="Vorlage ein/aus" title="Vorlage">
+    <div class="title">Paint</div>
+    <button class="icon-btn" id="toggle-template" aria-label="Toggle template" title="Template">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
     </button>
-    <button class="icon-btn" id="save-btn" aria-label="Speichern">
+    <button class="icon-btn" id="save-btn" aria-label="Save">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     </button>
   </div>
   <div class="paint-stage" id="paint-stage">
     <div class="toolbar-floating">
-      <button class="icon-btn active" id="tool-brush" aria-label="Pinsel">
+      <button class="icon-btn active" id="tool-brush" aria-label="Brush">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.06 11.9l8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04 0-1.67-1.34-3.02-3-3.02z"/></svg>
       </button>
-      <button class="icon-btn" id="tool-eraser" aria-label="Radiergummi">
+      <button class="icon-btn" id="tool-eraser" aria-label="Eraser">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16c-.78-.78-.78-2.05 0-2.83L13.17 3a2 2 0 0 1 2.83 0L21 8a2 2 0 0 1 0 2.83L10.83 21"/><line x1="18" y1="13" x2="9" y2="4"/></svg>
       </button>
       <div class="control-row" style="background:rgba(10,10,10,0.7);padding:8px;border-radius:12px;flex-direction:column;align-items:stretch;gap:6px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)">
         <input type="range" id="brush-size" min="2" max="40" step="1" value="14" style="width:90px">
       </div>
     </div>
-    <canvas id="canvas-template"></canvas>
-    <canvas id="canvas-paint"></canvas>
+    <div class="canvas-stack" id="canvas-stack">
+      <canvas id="canvas-template"></canvas>
+      <canvas id="canvas-paint"></canvas>
+    </div>
   </div>
   <div class="palette" id="palette"></div>
 </section>
@@ -399,7 +411,7 @@ const state = {
   origDataURL: null,       // gespeicherte DataURL
   width: 0, height: 0,     // verarbeitete Dimensionen
   palette: [],             // [{nr, r, g, b, hex}]
-  templateBitmap: null,    // ImageBitmap der Vorlage (schwarze Linien + Zahlen + transparenter Hintergrund)
+  templateBitmap: null,    // ImageBitmap of the template (black lines + numbers + transparent background)
   paintBitmap: null,       // bisher gemaltes (oder null)
   activeColor: null,
   tool: 'brush',
@@ -422,8 +434,8 @@ async function loadFromFile(file) {
   const img = new Image();
   img.src = url;
   await img.decode();
-  // skaliere auf max. 1600 px Längsseite (Performance auf iPad)
-  const MAX = 1600;
+  // skaliere auf max. 2000 px Längsseite (Performance auf iPad)
+  const MAX = 2000;
   const scale = Math.min(1, MAX / Math.max(img.width, img.height));
   const w = Math.round(img.width * scale);
   const h = Math.round(img.height * scale);
@@ -453,11 +465,11 @@ async function renderResumeList() {
     const meta = document.createElement('div');
     meta.className = 'meta';
     const ago = formatAgo(Date.now() - it.updatedAt);
-    meta.innerHTML = `<div class="name">${it.name || 'Projekt'}</div><div class="when">${ago}</div>`;
+    meta.innerHTML = `<div class="name">${it.name || 'Project'}</div><div class="when">${ago}</div>`;
     const open = document.createElement('button');
     open.className = 'btn-ghost';
     open.style.padding = '8px 14px'; open.style.fontSize = '13px';
-    open.textContent = 'Öffnen';
+    open.textContent = 'Open';
     open.addEventListener('click', () => resumeProject(it.id));
     const del = document.createElement('button');
     del.className = 'del';
@@ -472,13 +484,13 @@ async function renderResumeList() {
 }
 function formatAgo(ms) {
   const s = Math.round(ms / 1000);
-  if (s < 60) return 'gerade eben';
+  if (s < 60) return 'just now';
   const m = Math.round(s / 60);
-  if (m < 60) return `vor ${m} min`;
+  if (m < 60) return `${m} min ago`;
   const h = Math.round(m / 60);
-  if (h < 24) return `vor ${h} h`;
+  if (h < 24) return `${h} h ago`;
   const d = Math.round(h / 24);
-  return `vor ${d} Tagen`;
+  return `${d} days ago`;
 }
 
 async function resumeProject(id) {
@@ -502,8 +514,11 @@ async function blobToBitmap(blob) {
 const DETAIL_OPTIONS = [12, 24, 36, 50];
 $('#detail-slider').addEventListener('input', () => {
   const v = +$('#detail-slider').value;
-  $('#detail-value').textContent = DETAIL_OPTIONS[v] + ' Farben';
+  $('#detail-value').textContent = DETAIL_OPTIONS[v] + ' colors';
 });
+// Default to detailed (36 colors) instead of medium
+$('#detail-slider').value = 2;
+$('#detail-value').textContent = DETAIL_OPTIONS[2] + ' colors';
 $('#prep-back').addEventListener('click', () => go('start'));
 
 $('#generate-btn').addEventListener('click', async () => {
@@ -522,16 +537,18 @@ const workerSrc = `
 self.onmessage = async (e) => {
   const { imageData, k } = e.data;
   try {
-    const { palette, idMap, w, h } = quantize(imageData, k, (p) => post('progress', { stage: 'Farben analysieren', p }));
+    const { palette, idMap, w, h } = quantize(imageData, k, (p) => post('progress', { stage: 'Analyzing colors', p }));
     smoothIDs(idMap, w, h);
-    post('progress', { stage: 'Regionen formen', p: 0.55 });
+    post('progress', { stage: 'Forming regions', p: 0.55 });
     const { regions, regionMap } = labelRegions(idMap, w, h);
-    post('progress', { stage: 'Kleine Felder zusammenführen', p: 0.7 });
-    mergeTiny(regions, regionMap, idMap, w, h, 120);
-    post('progress', { stage: 'Konturen + Zahlen', p: 0.85 });
-    const numbered = makeNumbering(regions, idMap);
+    post('progress', { stage: 'Merging tiny areas', p: 0.7 });
+    // dynamic threshold: ~0.04% of total pixels, min 40, max 200
+    const minPx = Math.max(40, Math.min(200, Math.round(w * h * 0.0004)));
+    mergeTiny(regions, regionMap, idMap, w, h, minPx);
+    post('progress', { stage: 'Outlines and numbers', p: 0.85 });
+    const numbered = makeNumbering(regions, regionMap, idMap, w, h);
     const out = render(w, h, idMap, regionMap, palette, numbered);
-    post('progress', { stage: 'Fertig', p: 1 });
+    post('progress', { stage: 'Done', p: 1 });
     post('done', { palette: numbered.palette, paletteRGB: palette, w, h, lineImage: out.lineImage, numbers: numbered.numbers });
   } catch (err) {
     post('error', { message: String(err && err.message || err) });
@@ -750,9 +767,9 @@ function resolve(remap, id) {
   return id;
 }
 
-// --- numbering: pro Region die Color-ID -> Nummer (1..M), und Zahlen-Position ---
-function makeNumbering(regions, idMap) {
-  // sammle aktiv genutzte color-IDs (in absteigender Häufigkeit)
+// --- numbering: per color-ID -> number (1..M), plus a placement point that lies inside the region ---
+function makeNumbering(regions, regionMap, idMap, w, h) {
+  // gather color-IDs ranked by total pixels (so most common color = "1")
   const colorCount = new Map();
   for (const r of regions) {
     if (r.pixels === 0) continue;
@@ -761,15 +778,50 @@ function makeNumbering(regions, idMap) {
   const sortedColors = [...colorCount.entries()].sort((a,b) => b[1]-a[1]).map(([cid]) => cid);
   const colorToNum = new Map();
   sortedColors.forEach((cid, i) => colorToNum.set(cid, i+1));
-  // baue palette als sortiertes Array
-  // (Färben kommt im Hauptthread, hier nur Mapping)
-  // Zahlen-Positionen: nimm Zentrum mit größter Distanz zu allen anderen Regionen
+  // numbers: one per region, but only for regions big enough that a legible number fits
   const numbers = [];
   for (const r of regions) {
-    if (r.pixels === 0 || r.pixels < 50) continue; // sehr kleine Regionen: keine Nummer
-    numbers.push({ regionId: r.id, colorId: r.colorId, num: colorToNum.get(r.colorId), bbox: r.bbox });
+    if (r.pixels === 0) continue;
+    const place = innerPoint(r, regionMap, w, h);
+    // skip if even the largest inscribed circle is too tight for the smallest legible glyph
+    if (place.radius < 5) continue;
+    numbers.push({
+      regionId: r.id,
+      colorId: r.colorId,
+      num: colorToNum.get(r.colorId),
+      cx: place.x,
+      cy: place.y,
+      radius: place.radius,
+    });
   }
   return { colorToNum, sortedColors, palette: sortedColors, numbers };
+}
+
+// Approximate inscribed-circle center: scan in 4 directions from each candidate pixel
+// and keep the one whose minimum-distance-to-region-edge is largest.
+// For perf: sample on a sparse grid for big regions, full sweep for small ones.
+function innerPoint(region, regionMap, w, h) {
+  const [x0,y0,x1,y1] = region.bbox;
+  const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
+  const area = region.pixels;
+  // step keeps total candidate work ~bounded; tiny regions use step 1
+  const step = Math.max(1, Math.round(Math.sqrt(area) / 14));
+  let best = { x: (x0+x1)>>1, y: (y0+y1)>>1, radius: 0 };
+  for (let y = y0; y <= y1; y += step) {
+    for (let x = x0; x <= x1; x += step) {
+      const p = y*w + x;
+      if (regionMap[p] !== region.id) continue;
+      // distance to edge along 4 axes (capped at 64 to avoid huge inner scans on huge regions)
+      const CAP = 64;
+      let l=0; for (let d=1; d<=CAP && x-d>=0 && regionMap[y*w + (x-d)] === region.id; d++) l = d;
+      let rg=0; for (let d=1; d<=CAP && x+d<w && regionMap[y*w + (x+d)] === region.id; d++) rg = d;
+      let t=0; for (let d=1; d<=CAP && y-d>=0 && regionMap[(y-d)*w + x] === region.id; d++) t = d;
+      let bt=0; for (let d=1; d<=CAP && y+d<h && regionMap[(y+d)*w + x] === region.id; d++) bt = d;
+      const rad = Math.min(l, rg, t, bt);
+      if (rad > best.radius) best = { x, y, radius: rad };
+    }
+  }
+  return best;
 }
 
 // --- render edges (RGBA) + Zahlen kommen im Hauptthread, hier nur Linien ---
@@ -816,12 +868,12 @@ async function generateTemplate(k) {
         finishTemplate(payload).then(resolve).catch(reject);
         wk.terminate();
       } else if (type === 'error') {
-        toast('Fehler: ' + payload.message);
+        toast('Error: ' + payload.message);
         reject(new Error(payload.message));
         wk.terminate();
       }
     };
-    wk.onerror = (err) => { toast('Worker-Fehler'); reject(err); };
+    wk.onerror = (err) => { toast('Worker error'); reject(err); };
     wk.postMessage({ imageData, k }, [imageData.data.buffer]);
   });
 }
@@ -834,7 +886,7 @@ async function finishTemplate(payload) {
     return { nr: i+1, colorId: cid, r: rgb.r, g: rgb.g, b: rgb.b, hex: rgbToHex(rgb.r, rgb.g, rgb.b) };
   });
 
-  // Vorlage zeichnen: weißer Hintergrund + Linien + Nummern
+  // Draw template: lines + numbers on transparent background
   const tplCanvas = document.createElement('canvas');
   tplCanvas.width = w; tplCanvas.height = h;
   const tctx = tplCanvas.getContext('2d');
@@ -842,23 +894,19 @@ async function finishTemplate(payload) {
   const lineImg = new ImageData(lineImage, w, h);
   tctx.putImageData(lineImg, 0, 0);
   // Zahlen drauf
-  tctx.fillStyle = '#000';
   for (const n of numbers) {
-    const [x0,y0,x1,y1] = n.bbox;
-    const cw = x1-x0+1, ch = y1-y0+1;
-    const sz = Math.max(8, Math.min(cw, ch) * 0.35);
-    if (sz < 7) continue; // zu klein
+    // n.cx/cy = inscribed-circle center inside the region, n.radius = its radius
+    // font size is bounded so a number never grows beyond ~22 px regardless of region size
+    const sz = Math.max(9, Math.min(22, n.radius * 1.05));
     tctx.font = `${Math.round(sz)}px -apple-system, sans-serif`;
     tctx.textAlign = 'center';
     tctx.textBaseline = 'middle';
-    const cx = (x0 + x1) / 2;
-    const cy = (y0 + y1) / 2;
-    // weißer outline trick: zeichne mehrfach weiß, dann schwarz
-    tctx.lineWidth = Math.max(2, sz * 0.18);
-    tctx.strokeStyle = 'rgba(255,255,255,0.8)';
-    tctx.strokeText(String(n.num), cx, cy);
-    tctx.fillStyle = '#000';
-    tctx.fillText(String(n.num), cx, cy);
+    // white halo so the digit reads against any nearby contour
+    tctx.lineWidth = Math.max(2, sz * 0.22);
+    tctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    tctx.strokeText(String(n.num), n.cx, n.cy);
+    tctx.fillStyle = '#111';
+    tctx.fillText(String(n.num), n.cx, n.cy);
   }
 
   state.palette = finalPalette;
@@ -867,11 +915,11 @@ async function finishTemplate(payload) {
   state.paintBitmap = null;
   state.projectId = 'p_' + Date.now();
 
-  // Speichern
+  // Persist
   const templateBlob = await new Promise(res => tplCanvas.toBlob(b => res(b), 'image/png'));
   await dbPut({
     id: state.projectId,
-    name: 'Projekt ' + new Date().toLocaleDateString('de-DE'),
+    name: 'Project ' + new Date().toLocaleDateString('en-US'),
     createdAt: Date.now(),
     updatedAt: Date.now(),
     width: w, height: h,
@@ -922,10 +970,13 @@ function fitCanvas() {
 }
 
 function applyTransform() {
+  const stack = $('#canvas-stack');
+  stack.style.width = state.width + 'px';
+  stack.style.height = state.height + 'px';
+  stack.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
   for (const c of [$('#canvas-template'), $('#canvas-paint')]) {
     c.style.width = state.width + 'px';
     c.style.height = state.height + 'px';
-    c.style.transform = `translate(-50%, -50%) translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
   }
   $('#canvas-template').style.opacity = state.templateVisible ? '1' : '0';
   $('#canvas-template').style.pointerEvents = 'none';
@@ -989,20 +1040,20 @@ function bindPaintEvents() {
   }
 
   stage.addEventListener('pointerdown', (e) => {
-    if (e.pointerType === 'touch' && pointers.size === 0) {
-      pointers.set(e.pointerId, e);
-      // Touch wartet, ob 2. Finger kommt
-      return;
-    }
     pointers.set(e.pointerId, e);
+    // Second (or third) pointer: cancel any active stroke and switch to pinch/pan.
     if (pointers.size >= 2) {
-      // Pinch start
-      drawState = null;
+      if (drawState) {
+        drawState = null;
+        autosave();
+      }
       gestureStart();
       return;
     }
-    if (e.pointerType === 'pen' || (e.pointerType === 'touch' && pointers.size === 1 && !penLikely())) {
-      stage.setPointerCapture(e.pointerId);
+    // First pointer: start a stroke. For pen always; for touch/mouse only if no pen is already active.
+    const hasPenActive = [...pointers.values()].some((p) => p.pointerType === 'pen' && p.pointerId !== e.pointerId);
+    if (e.pointerType === 'pen' || !hasPenActive) {
+      try { stage.setPointerCapture(e.pointerId); } catch (_) {}
       startStroke(e);
     }
   });
@@ -1051,7 +1102,7 @@ function bindPaintEvents() {
   }
   function endGesture() { gs = null; }
   function penLikely() {
-    // Wenn iPad ohne Pencil: erlaube Touch-Malen für Tests. Auf Pencil-Geräten nur 'pen' lassen.
+    // On iPads without a Pencil: allow touch drawing for testing. On Pencil devices, prefer 'pen' only.
     return false;
   }
 }
@@ -1145,7 +1196,7 @@ $('#brush-size').addEventListener('input', (e) => {
 $('#toggle-template').addEventListener('click', () => {
   state.templateVisible = !state.templateVisible;
   applyTransform();
-  toast(state.templateVisible ? 'Vorlage an' : 'Vorlage aus');
+  toast(state.templateVisible ? 'Template on' : 'Template off');
 });
 $('#paint-back').addEventListener('click', async () => { await autosave(); go('start'); renderResumeList(); });
 $('#save-btn').addEventListener('click', async () => {
@@ -1163,11 +1214,11 @@ $('#save-btn').addEventListener('click', async () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'malen-' + Date.now() + '.png';
+    a.download = 'painting-' + Date.now() + '.png';
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }, 'image/png');
-  toast('Bild gespeichert');
+  toast('Image saved');
 });
 
 window.addEventListener('resize', () => {
@@ -1178,6 +1229,10 @@ window.addEventListener('resize', () => {
 renderResumeList();
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+// Ask the browser to keep our IndexedDB storage persistent across long inactivity / low-disk eviction
+if (navigator.storage && navigator.storage.persist) {
+  navigator.storage.persist().catch(() => {});
 }
 </script>
 </body>
