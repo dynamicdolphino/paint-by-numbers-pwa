@@ -234,6 +234,10 @@
     position: absolute; left: 12px; top: 12px;
     display: flex; flex-direction: column; gap: 8px;
     z-index: 5;
+    touch-action: manipulation;
+  }
+  .toolbar-floating input[type="range"] {
+    touch-action: manipulation;
   }
   .toolbar-floating .icon-btn { background: rgba(10,10,10,0.7); color: #fff; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
   .toolbar-floating .icon-btn.active { background: var(--accent); color: #fff; }
@@ -268,6 +272,10 @@
     <label class="btn-primary">
       Choose photo
       <input type="file" id="file-input" accept="image/*" style="display:none">
+    </label>
+    <label style="font-size:13px;color:var(--text-mute);cursor:pointer">
+      or import a project backup
+      <input type="file" id="import-input" accept=".json,.pbn,application/json" style="display:none">
     </label>
     <div class="resume-list" id="resume-list"></div>
   </div>
@@ -306,7 +314,10 @@
     <button class="icon-btn" id="toggle-template" aria-label="Toggle template" title="Template">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
     </button>
-    <button class="icon-btn" id="save-btn" aria-label="Save">
+    <button class="icon-btn" id="backup-btn" aria-label="Backup project" title="Backup project">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+    </button>
+    <button class="icon-btn" id="save-btn" aria-label="Save image" title="Save image">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     </button>
   </div>
@@ -317,6 +328,9 @@
       </button>
       <button class="icon-btn" id="tool-eraser" aria-label="Eraser">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16c-.78-.78-.78-2.05 0-2.83L13.17 3a2 2 0 0 1 2.83 0L21 8a2 2 0 0 1 0 2.83L10.83 21"/><line x1="18" y1="13" x2="9" y2="4"/></svg>
+      </button>
+      <button class="icon-btn" id="tool-undo" aria-label="Undo" disabled style="opacity:0.4">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>
       </button>
       <div class="control-row" style="background:rgba(10,10,10,0.7);padding:8px;border-radius:12px;flex-direction:column;align-items:stretch;gap:6px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)">
         <input type="range" id="brush-size" min="2" max="40" step="1" value="14" style="width:90px">
@@ -420,7 +434,9 @@ const state = {
   projectId: null,
   zoom: 1,
   panX: 0, panY: 0,
+  undoStack: [],           // Blob[] der letzten paint-canvas Snapshots
 };
+const UNDO_MAX = 10;
 
 // ---------- Start screen ----------
 $('#file-input').addEventListener('change', async (e) => {
@@ -953,15 +969,22 @@ function setupPaint() {
   pctx.fillRect(0,0,state.width, state.height);
   if (state.paintBitmap) pctx.drawImage(state.paintBitmap, 0, 0);
 
-  // Fit zoom
-  fitCanvas();
   buildPalette();
   bindPaintEvents();
+  state.undoStack = [];
+  updateUndoButton();
+  // fitCanvas needs the paint screen to be visible — measure on the next frame
+  requestAnimationFrame(() => requestAnimationFrame(fitCanvas));
 }
 
 function fitCanvas() {
   const stage = $('#paint-stage');
   const rect = stage.getBoundingClientRect();
+  if (rect.width < 10 || rect.height < 10) {
+    // not laid out yet, try again
+    requestAnimationFrame(fitCanvas);
+    return;
+  }
   const scale = Math.min(rect.width / state.width, rect.height / state.height) * 0.95;
   state.zoom = scale;
   state.panX = 0;
@@ -1025,27 +1048,44 @@ function bindPaintEvents() {
   function startStroke(e) {
     if (!state.activeColor && state.tool === 'brush') return;
     const { x, y } = canvasCoords(e);
-    drawState = { lastX: x, lastY: y };
-    drawDot(x, y, e.pressure || 0.5);
+    // Pen: commit immediately. Touch/mouse: defer the first dot until a real move
+    // arrives — this prevents accidental dots when the user starts a pinch-zoom.
+    const immediate = e.pointerType === 'pen';
+    drawState = { lastX: x, lastY: y, started: immediate };
+    if (immediate) {
+      pushUndo();
+      drawDot(x, y, e.pressure || 0.5);
+    }
   }
   function moveStroke(e) {
     if (!drawState) return;
     const { x, y } = canvasCoords(e);
+    if (!drawState.started) {
+      // Only now does the user really intend to paint — snapshot for undo and commit the first dot.
+      pushUndo();
+      drawDot(drawState.lastX, drawState.lastY, e.pressure || 0.5);
+      drawState.started = true;
+    }
     drawLine(drawState.lastX, drawState.lastY, x, y, e.pressure || 0.5);
     drawState.lastX = x; drawState.lastY = y;
   }
   function endStroke() {
+    const wasStroke = drawState && drawState.started;
     drawState = null;
-    autosave();
+    if (wasStroke) autosave();
   }
 
   stage.addEventListener('pointerdown', (e) => {
+    // Ignore pointers that originated on the floating toolbar so its buttons and
+    // brush-size slider don't accidentally start strokes on the canvas.
+    if (e.target.closest('.toolbar-floating')) return;
     pointers.set(e.pointerId, e);
     // Second (or third) pointer: cancel any active stroke and switch to pinch/pan.
     if (pointers.size >= 2) {
       if (drawState) {
+        // If the first pointer never escalated to a real stroke, nothing was drawn
+        // and there is no undo snapshot to discard — just drop the draft.
         drawState = null;
-        autosave();
       }
       gestureStart();
       return;
@@ -1193,12 +1233,124 @@ $('#tool-eraser').addEventListener('click', () => {
 $('#brush-size').addEventListener('input', (e) => {
   state.brushSize = +e.target.value;
 });
+$('#tool-undo').addEventListener('click', undo);
+
+// ---------- Undo ----------
+function pushUndo() {
+  const canvas = $('#canvas-paint');
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    state.undoStack.push(blob);
+    while (state.undoStack.length > UNDO_MAX) state.undoStack.shift();
+    updateUndoButton();
+  }, 'image/png');
+}
+async function undo() {
+  if (state.undoStack.length === 0) return;
+  const blob = state.undoStack.pop();
+  const bmp = await createImageBitmap(blob);
+  const ctx = $('#canvas-paint').getContext('2d');
+  ctx.clearRect(0, 0, state.width, state.height);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, state.width, state.height);
+  ctx.drawImage(bmp, 0, 0);
+  updateUndoButton();
+  autosave();
+}
+function updateUndoButton() {
+  const btn = $('#tool-undo');
+  if (!btn) return;
+  const enabled = state.undoStack.length > 0;
+  btn.disabled = !enabled;
+  btn.style.opacity = enabled ? '1' : '0.4';
+}
 $('#toggle-template').addEventListener('click', () => {
   state.templateVisible = !state.templateVisible;
   applyTransform();
   toast(state.templateVisible ? 'Template on' : 'Template off');
 });
 $('#paint-back').addEventListener('click', async () => { await autosave(); go('start'); renderResumeList(); });
+// ---------- Backup / Import ----------
+$('#backup-btn').addEventListener('click', backupProject);
+$('#import-input').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  try {
+    await importProject(file);
+  } catch (err) {
+    toast('Import failed: ' + (err.message || err));
+  }
+  e.target.value = '';
+});
+
+async function backupProject() {
+  if (!state.projectId) { toast('Nothing to back up'); return; }
+  const proj = await dbGet(state.projectId);
+  if (!proj) { toast('Project not found'); return; }
+  // Snapshot current paint canvas into the export too
+  const paintBlob = await new Promise((res) => $('#canvas-paint').toBlob((b) => res(b), 'image/png'));
+  const tplB64 = proj.templateBlob ? await blobToBase64(proj.templateBlob) : null;
+  const paintB64 = paintBlob ? await blobToBase64(paintBlob) : null;
+  const payload = {
+    format: 'paint-by-numbers-pwa',
+    version: 1,
+    name: proj.name,
+    createdAt: proj.createdAt,
+    updatedAt: Date.now(),
+    width: proj.width,
+    height: proj.height,
+    palette: proj.palette,
+    origDataURL: proj.origDataURL,
+    templateDataURL: tplB64 ? 'data:image/png;base64,' + tplB64 : null,
+    paintDataURL: paintB64 ? 'data:image/png;base64,' + paintB64 : null,
+  };
+  const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const safe = (proj.name || 'project').replace(/[^\w\-]+/g, '-');
+  a.href = url; a.download = `${safe}.pbn.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  toast('Backup saved');
+}
+
+async function importProject(file) {
+  const text = await file.text();
+  const data = JSON.parse(text);
+  if (data.format !== 'paint-by-numbers-pwa') throw new Error('Not a valid backup file');
+  const tplBlob = data.templateDataURL ? await dataURLToBlob(data.templateDataURL) : null;
+  const paintBlob = data.paintDataURL ? await dataURLToBlob(data.paintDataURL) : null;
+  const newId = 'p_' + Date.now();
+  await dbPut({
+    id: newId,
+    name: data.name || 'Imported project',
+    createdAt: data.createdAt || Date.now(),
+    updatedAt: Date.now(),
+    width: data.width,
+    height: data.height,
+    palette: data.palette,
+    origDataURL: data.origDataURL,
+    thumb: data.origDataURL,
+    templateBlob: tplBlob,
+    paintBlob: paintBlob,
+  });
+  await resumeProject(newId);
+  toast('Project imported');
+}
+
+function blobToBase64(blob) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result).split(',')[1] || '');
+    r.onerror = rej;
+    r.readAsDataURL(blob);
+  });
+}
+async function dataURLToBlob(dataURL) {
+  const res = await fetch(dataURL);
+  return await res.blob();
+}
+
 $('#save-btn').addEventListener('click', async () => {
   // Compose & download
   const out = document.createElement('canvas');
