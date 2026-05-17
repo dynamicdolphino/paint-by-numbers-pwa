@@ -273,8 +273,8 @@
       Choose photo
       <input type="file" id="file-input" accept="image/*" style="display:none">
     </label>
-    <label style="font-size:13px;color:var(--text-mute);cursor:pointer">
-      or import a project backup
+    <label class="btn-ghost" style="cursor:pointer">
+      Import backup
       <input type="file" id="import-input" accept=".json,.pbn,application/json" style="display:none">
     </label>
     <div class="resume-list" id="resume-list"></div>
@@ -510,17 +510,22 @@ function formatAgo(ms) {
 }
 
 async function resumeProject(id) {
-  const p = await dbGet(id);
-  if (!p) return;
-  state.projectId = p.id;
-  state.width = p.width; state.height = p.height;
-  state.palette = p.palette;
-  state.origDataURL = p.origDataURL;
-  // Bitmaps rekonstruieren
-  state.templateBitmap = await blobToBitmap(p.templateBlob);
-  state.paintBitmap = p.paintBlob ? await blobToBitmap(p.paintBlob) : null;
-  setupPaint();
-  go('paint');
+  try {
+    const p = await dbGet(id);
+    if (!p) { toast('Project not found'); return; }
+    if (!p.templateBlob) { toast('Project is incomplete'); return; }
+    state.projectId = p.id;
+    state.width = p.width; state.height = p.height;
+    state.palette = p.palette;
+    state.origDataURL = p.origDataURL;
+    state.templateBitmap = await blobToBitmap(p.templateBlob);
+    state.paintBitmap = p.paintBlob ? await blobToBitmap(p.paintBlob) : null;
+    go('paint');
+    setupPaint();
+  } catch (err) {
+    toast('Could not open project');
+    console.error('resumeProject error', err);
+  }
 }
 async function blobToBitmap(blob) {
   return await createImageBitmap(blob);
@@ -1205,18 +1210,31 @@ function baseRadius(pressure) {
 }
 
 let autosaveTimer = null;
+let savePromise = null;
+async function doSave() {
+  if (!state.projectId) return;
+  const canvas = $('#canvas-paint');
+  const blob = await new Promise((res) => canvas.toBlob((b) => res(b), 'image/png'));
+  if (!blob) return;
+  const p = await dbGet(state.projectId);
+  if (!p) return;
+  p.paintBlob = blob;
+  p.updatedAt = Date.now();
+  await dbPut(p);
+}
 function autosave() {
   clearTimeout(autosaveTimer);
-  autosaveTimer = setTimeout(async () => {
-    const canvas = $('#canvas-paint');
-    const blob = await new Promise(res => canvas.toBlob(b => res(b), 'image/png'));
-    if (!state.projectId) return;
-    const p = await dbGet(state.projectId);
-    if (!p) return;
-    p.paintBlob = blob;
-    p.updatedAt = Date.now();
-    await dbPut(p);
+  autosaveTimer = setTimeout(() => {
+    savePromise = doSave().catch(() => {});
   }, 800);
+}
+// Flush any pending autosave immediately and wait for it to land in IndexedDB.
+async function flushSave() {
+  clearTimeout(autosaveTimer);
+  // wait for an in-flight save first, then run a fresh one synchronously
+  if (savePromise) { try { await savePromise; } catch (_) {} }
+  savePromise = doSave().catch(() => {});
+  try { await savePromise; } catch (_) {}
 }
 
 // Toolbar
@@ -1269,7 +1287,11 @@ $('#toggle-template').addEventListener('click', () => {
   applyTransform();
   toast(state.templateVisible ? 'Template on' : 'Template off');
 });
-$('#paint-back').addEventListener('click', async () => { await autosave(); go('start'); renderResumeList(); });
+$('#paint-back').addEventListener('click', async () => {
+  await flushSave();
+  go('start');
+  await renderResumeList();
+});
 // ---------- Backup / Import ----------
 $('#backup-btn').addEventListener('click', backupProject);
 $('#import-input').addEventListener('change', async (e) => {
@@ -1285,12 +1307,12 @@ $('#import-input').addEventListener('change', async (e) => {
 
 async function backupProject() {
   if (!state.projectId) { toast('Nothing to back up'); return; }
+  // Flush the current paint canvas to IndexedDB first, so the backup is up to date
+  await flushSave();
   const proj = await dbGet(state.projectId);
   if (!proj) { toast('Project not found'); return; }
-  // Snapshot current paint canvas into the export too
-  const paintBlob = await new Promise((res) => $('#canvas-paint').toBlob((b) => res(b), 'image/png'));
   const tplB64 = proj.templateBlob ? await blobToBase64(proj.templateBlob) : null;
-  const paintB64 = paintBlob ? await blobToBase64(paintBlob) : null;
+  const paintB64 = proj.paintBlob ? await blobToBase64(proj.paintBlob) : null;
   const payload = {
     format: 'paint-by-numbers-pwa',
     version: 1,
@@ -1304,13 +1326,30 @@ async function backupProject() {
     templateDataURL: tplB64 ? 'data:image/png;base64,' + tplB64 : null,
     paintDataURL: paintB64 ? 'data:image/png;base64,' + paintB64 : null,
   };
-  const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+  const json = JSON.stringify(payload);
+  const blob = new Blob([json], { type: 'application/json' });
+  const safe = (proj.name || 'project').replace(/[^\w\-]+/g, '-');
+  const filename = `${safe}.pbn.json`;
+
+  // iOS Safari (especially in standalone PWA) ignores <a download>. Prefer Web Share API with a file.
+  try {
+    const file = new File([blob], filename, { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: proj.name || 'Project backup' });
+      toast('Backup shared');
+      return;
+    }
+  } catch (err) {
+    // user cancelled the share or share failed — fall through to download fallback
+  }
+  // Fallback: classic download (works on desktop browsers; tap-and-hold on iOS opens a "Save" sheet)
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  const safe = (proj.name || 'project').replace(/[^\w\-]+/g, '-');
-  a.href = url; a.download = `${safe}.pbn.json`;
+  a.href = url; a.download = filename; a.rel = 'noopener';
+  document.body.appendChild(a);
   a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
   toast('Backup saved');
 }
 
