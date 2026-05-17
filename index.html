@@ -940,7 +940,7 @@ async function finishTemplate(payload) {
   const templateBlob = await new Promise(res => tplCanvas.toBlob(b => res(b), 'image/png'));
   await dbPut({
     id: state.projectId,
-    name: 'Project ' + new Date().toLocaleDateString('en-US'),
+    name: 'Project ' + formatProjectStamp(new Date()),
     createdAt: Date.now(),
     updatedAt: Date.now(),
     width: w, height: h,
@@ -957,6 +957,10 @@ async function finishTemplate(payload) {
 
 function rgbToHex(r,g,b) {
   return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
+}
+function formatProjectStamp(d) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 // ---------- Paint screen ----------
