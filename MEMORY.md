@@ -108,3 +108,15 @@
 **Begründung:** Eindeutig pro Minute, sortierbar als String, dateinamen-sicher (Sanitizing der Backup-Files macht aus `:` und Spaces sowieso `-`).
 
 **Auswirkung:** Mehrere Projekte am selben Tag sind sauber unterscheidbar in Projekt-Liste und in Backup-Dateinamen.
+
+---
+
+## 2026-05-17 — Session-Pause, Backlog für nächste Session
+
+**Kontext:** Drei offene Wünsche (Druck-PDF, Weniger-Farben-Preset, schönere Detail-Auswahl statt Slider). Session wird hier beendet, um Conversation-Tokens zu sparen.
+
+**Entscheidung:** Alle drei Items strukturiert in `BACKLOG.md` festgehalten — mit konkretem Implementation-Plan, Bibliotheks-Empfehlung (pdf-lib für PDF), Code-Stellen und Akzeptanzkriterien.
+
+**Begründung:** Die nächste Session (egal welche KI, egal wann) kann ohne Aufwärm-Runde direkt loslegen. Das BACKLOG erklärt nicht nur *was* zu tun ist, sondern auch *wo im Code* und *wie es konkret aussehen soll*.
+
+**Auswirkung:** Nächste Session sollte beginnen mit `README.md` → `BACKLOG.md` → loslegen. MEMORY.md wird bei Implementierung um die jeweilige Entscheidung ergänzt, CHANGELOG.md bekommt einen neuen Versions-Eintrag.
