@@ -30,7 +30,7 @@ Erstmal Michael selbst. Weil das Repo public ist, kann jeder es nutzen — aber 
 - [x] Backup-Export als `.pbn.json`, Import zur Wiederherstellung
 - [x] Undo (10 Schritte)
 - [x] Live über GitHub Pages erreichbar, PWA-installierbar
-- [ ] Nice-to-have: Druck-Export der reinen Vorlage als PDF
+- [x] Nice-to-have: Druck-Export der reinen Vorlage als PDF
 - [ ] Nice-to-have: mehrere Pinselformen, härtere Pencil-Druckstufen
 
 ## Tech Stack / Tools

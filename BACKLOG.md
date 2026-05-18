@@ -5,39 +5,26 @@
 
 ---
 
-## [Next] Druck-PDF der Vorlage
+## [Next] SRI-Hash für pdf-lib CDN-Load
 
-**Was:** Button im Paint-Header (Drucker-Icon, links neben „Save image") oder als zusätzliche Aktion im Backup-Button-Menü → erzeugt eine druckfertige PDF mit (1) der nummerierten Schwarz-Weiß-Vorlage bildschirmfüllend auf A4 / Letter, plus (2) einer Farb-Legende-Seite mit Nummer ↔ Farbe ↔ Hex.
+**Was:** Beim dynamischen Load von `pdf-lib.min.js` einen `integrity`-Hash setzen, damit ein kompromittiertes cdnjs nicht beliebigen JS-Code einschleusen kann.
 
-**Warum:** Offline malen mit echten Stiften auf Papier, oder zum Verschenken einer fertigen Vorlage.
+**Wie:**
 
-**Wie (kompakt):**
-
-1. **PDF-Library wählen:** [`pdf-lib`](https://github.com/Hopding/pdf-lib) (~250 KB, läuft komplett im Browser, kein Server). Per CDN laden:
-   ```html
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+1. Hash lokal berechnen (cdnjs blockt im Sandbox-Egress):
+   ```bash
+   curl -sS https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js \
+     | openssl dgst -sha384 -binary | openssl base64 -A
    ```
-2. **Seite 1 — Vorlage:**
-   - PDF im A4 quer/hoch je nach Bild-Aspect (`Math.max(w/h, h/w)` entscheiden lassen)
-   - `state.templateBitmap` als PNG einbetten (`pdfDoc.embedPng(...)`), so groß wie möglich auf der Seite, zentriert, 10 mm Rand
-3. **Seite 2 — Farb-Legende:**
-   - Header: „Color guide — <projektname>"
-   - Grid 4 Spalten × n Zeilen: jedes Feld ist farbiges 12×12 mm Quadrat + Nummer + Hex
-   - Schriftgrad 9 pt, Helvetica
-4. **Download:** `pdfDoc.save()` → Uint8Array → Blob → **denselben `openSaveSheet()`-Pfad wie Backup und Save** (also `navigator.share()` synchron im Click + Modal-Fallback). Wichtig: `pdfDoc.save()` ist async — also entweder vor dem User-Klick prefetchen, oder den Klick-Handler mit dem schon-existierenden Sync-Pattern bauen (Blob synchron vorbereiten wenn möglich).
-5. **State-Check:** vor dem Generieren `state.templateBitmap && state.palette.length > 0` (`backupProject` macht das auch schon so)
+2. Im Code (Zeile mit `await loadScript(PDF_LIB_CDN);`) den Hash als zweites Argument durchreichen:
+   ```js
+   await loadScript(PDF_LIB_CDN, 'sha384-<HASH>');
+   ```
+3. `loadScript()` setzt bereits `crossOrigin = 'anonymous'`, daher klappt die Browser-seitige Integrity-Prüfung sobald der Hash gesetzt ist.
 
-**Wo im Code:**
-- HTML: neuen Button in `<div class="paint-header">` mit Drucker-SVG + `<span class="icon-label">Print</span>`
-- JS: neue Funktion `async function exportPDF() { ... }`, Event-Listener wie `backupProject`
-- Größere Hinzufügung: `<script src="...pdf-lib.min.js">` im `<head>` (oder dynamisch per `loadScript()` damit der Offline-Modus nicht bricht — Empfehlung: dynamisch laden, weil pdf-lib ~250 KB ist und die meisten Sessions ihn nicht brauchen)
-- `sw.js`: pdf-lib CDN-URL in FILES-Array? Nein — CDN ist Cross-Origin und unser SW ignoriert das. PDF-Export verlangt online — kein Problem für den Druck-Use-Case.
+**Warum:** Ohne SRI würde eine cdnjs-Kompromittierung beliebiges JS in der PWA ausführen lassen — inklusive Zugriff auf IndexedDB (gespeicherte Bilder + Backups). Mit SRI wird der `<script>`-Tag still abgelehnt, wenn der Hash nicht passt.
 
-**Edge Cases:**
-- Großes Bild → PDF-Größe checken (PNG-Einbettung ist verlustfrei, 2000×2000 wird ~3 MB)
-- pdf-lib `save()` ist async — vorbereitendes Blob-Bauen passt nicht ins Sync-Gesture-Pattern. Lösung: Klick öffnet sofort eine Mini-„Generating PDF…"-Toast und das Modal erst nach Promise-Resolve.
-
-**Akzeptanzkriterium:** Auf iPad öffnet sich nach Tap das iOS-Sharesheet (oder als Fallback das `openSaveSheet()`) mit einer `<projekt>.pdf`, in der Seite 1 die Vorlage und Seite 2 die Legende zeigt.
+**Akzeptanzkriterium:** Im DevTools-Network-Tab steht „Integrity check passed" bei der pdf-lib-Anfrage; bei manipuliertem Inhalt wird das Script blockiert.
 
 ---
 
@@ -59,6 +46,11 @@
 - Schwierigkeitsanalyse („dieses Bild hat sehr viele kleine Regionen, willst du erst Easy-Preset probieren?")
 
 ---
+
+## Erledigt in 0.8.0
+
+- ✅ ~~Druck-PDF der Vorlage~~ — pdf-lib via CDN (on-demand), Print-Button im Paint-Header, A4 mit Vorlage + Farb-Legende
+- ✅ ~~loadScript() Helper~~ — generischer on-demand-Loader für künftige optionale Libraries
 
 ## Erledigt in 0.7.0
 

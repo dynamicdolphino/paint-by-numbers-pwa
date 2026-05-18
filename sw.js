@@ -1,6 +1,6 @@
 // Minimal Service Worker: caches the shell so the app runs offline.
 // Bump CACHE name on any release to force clients to refetch shell assets.
-const CACHE = 'pbn-v8';
+const CACHE = 'pbn-v9';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {

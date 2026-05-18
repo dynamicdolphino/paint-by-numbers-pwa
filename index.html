@@ -413,6 +413,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
       <span class="icon-label">Template</span>
     </button>
+    <button class="icon-btn" id="print-btn" aria-label="Print template" title="Generate a printable PDF (template + color guide)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      <span class="icon-label">Print</span>
+    </button>
     <button class="icon-btn" id="backup-btn" aria-label="Backup project" title="Save a project file (.pbn.json) you can re-import later">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
       <span class="icon-label">Backup</span>
@@ -608,7 +612,16 @@ async function renderResumeList() {
     const meta = document.createElement('div');
     meta.className = 'meta';
     const ago = formatAgo(Date.now() - it.updatedAt);
-    meta.innerHTML = `<div class="name">${it.name || 'Project'}</div><div class="when">${ago}</div>`;
+    // Build with textContent rather than innerHTML so a manipulated backup
+    // file (it.name = '<img onerror=...>') cannot inject HTML/script.
+    const nameEl = document.createElement('div');
+    nameEl.className = 'name';
+    nameEl.textContent = it.name || 'Project';
+    const whenEl = document.createElement('div');
+    whenEl.className = 'when';
+    whenEl.textContent = ago;
+    meta.appendChild(nameEl);
+    meta.appendChild(whenEl);
     const open = document.createElement('button');
     open.className = 'btn-ghost';
     open.style.padding = '8px 14px'; open.style.fontSize = '13px';
@@ -1455,8 +1468,9 @@ $('#paint-back').addEventListener('click', async () => {
   go('start');
   await renderResumeList();
 });
-// ---------- Backup / Import ----------
+// ---------- Backup / Import / Print ----------
 $('#backup-btn').addEventListener('click', backupProject);
+$('#print-btn').addEventListener('click', exportPDF);
 $('#import-input').addEventListener('change', async (e) => {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
@@ -1633,6 +1647,178 @@ function backupProject() {
   openSaveSheet({ file, blob, filename,
     title: 'Save backup',
     body: 'Pick how to save the project file.' });
+}
+
+/* ------------------------------------------------------------------
+   Print PDF (template + color legend).
+
+   Unlike backup / save-image, the PDF build path is inherently async
+   (pdf-lib's PDFDocument.create() and embedPng() return promises), so
+   we cannot call navigator.share() inside the original click gesture.
+   The compromise: a long-running "Generating PDF…" toast while the
+   document builds, then openSaveSheet() — its own buttons are fresh
+   user gestures and pass iOS's standalone-mode share check.
+
+   pdf-lib is ~250 KB so we load it on-demand from a CDN, only when
+   the Print button is tapped. Offline-only sessions without printing
+   never pay the cost.
+   ------------------------------------------------------------------ */
+
+const PDF_LIB_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';
+
+function loadScript(src, integrity) {
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector('script[data-loaded-src="' + src + '"]');
+    if (existing) return resolve();
+    const s = document.createElement('script');
+    s.src = src;
+    s.async = true;
+    // Don't leak the in-app URL to the CDN, and require CORS so that — when
+    // we eventually pin an SRI hash here — the integrity check can actually run.
+    s.crossOrigin = 'anonymous';
+    s.referrerPolicy = 'no-referrer';
+    if (integrity) s.integrity = integrity;
+    s.dataset.loadedSrc = src;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Failed to load script: ' + src));
+    document.head.appendChild(s);
+  });
+}
+
+// Sync data:URL → Uint8Array. We use this rather than a fetch()-based
+// helper because pdf-lib's embedPng wants the raw bytes synchronously
+// available in the same async function.
+function dataURLToUint8Array(dataURL) {
+  const comma = dataURL.indexOf(',');
+  const body = dataURL.slice(comma + 1);
+  const bin = atob(body);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return arr;
+}
+
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('');
+}
+
+async function exportPDF() {
+  if (!state.projectId) { toast('Nothing to print'); return; }
+  if (!state.templateBitmap) { toast('Template not ready yet'); return; }
+  if (!state.palette.length) { toast('No palette available'); return; }
+
+  // Long-running toast while we build. The next toast() call replaces it
+  // (toast() shares a single timer slot).
+  toast('Generating PDF…', 60000);
+
+  try {
+    if (!window.PDFLib) await loadScript(PDF_LIB_CDN);
+    if (!window.PDFLib) throw new Error('pdf-lib unavailable (offline?)');
+
+    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+    const pdfDoc = await PDFDocument.create();
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+    // A4 in PDF points (1 mm ≈ 2.8346 pt). Margin = 10 mm.
+    const A4_W = 595.28, A4_H = 841.89, MARGIN = 28.35;
+
+    // -------- Page 1: numbered template --------
+    // Orient the page so the longer image side runs along the longer page side.
+    const portrait = state.height >= state.width;
+    const pageW = portrait ? A4_W : A4_H;
+    const pageH = portrait ? A4_H : A4_W;
+    const page1 = pdfDoc.addPage([pageW, pageH]);
+
+    const tplCanvas = templateCanvasFromState();
+    const tplBytes = dataURLToUint8Array(tplCanvas.toDataURL('image/png'));
+    const tplImg = await pdfDoc.embedPng(tplBytes);
+
+    // 18 pt at the bottom for the project name caption.
+    const captionH = 18;
+    const availW = pageW - 2 * MARGIN;
+    const availH = pageH - 2 * MARGIN - captionH;
+    const scale = Math.min(availW / tplImg.width, availH / tplImg.height);
+    const drawW = tplImg.width * scale;
+    const drawH = tplImg.height * scale;
+    const drawX = (pageW - drawW) / 2;
+    const drawY = MARGIN + captionH + (availH - drawH) / 2;
+
+    page1.drawImage(tplImg, { x: drawX, y: drawY, width: drawW, height: drawH });
+
+    const title = state.projectName || 'Paint by Numbers';
+    page1.drawText(title, {
+      x: MARGIN,
+      y: MARGIN / 2,
+      size: 9,
+      font,
+      color: rgb(0.3, 0.3, 0.3),
+    });
+
+    // -------- Page 2: color legend --------
+    const page2 = pdfDoc.addPage([A4_W, A4_H]);
+
+    page2.drawText('Color guide — ' + title, {
+      x: MARGIN,
+      y: A4_H - MARGIN,
+      size: 13,
+      font: fontBold,
+      color: rgb(0, 0, 0),
+    });
+
+    // 4-column grid. Each cell: square swatch + number/hex right of it.
+    const cols = 4;
+    const cellW = (A4_W - 2 * MARGIN) / cols;
+    const swatchSize = 34;        // ≈12 mm
+    const rowH = swatchSize + 16;
+    const gridTop = A4_H - MARGIN - 28;
+
+    state.palette.forEach((p, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const cx = MARGIN + col * cellW;
+      const cy = gridTop - row * rowH;
+
+      page2.drawRectangle({
+        x: cx,
+        y: cy - swatchSize,
+        width: swatchSize,
+        height: swatchSize,
+        color: rgb(p.r / 255, p.g / 255, p.b / 255),
+        borderColor: rgb(0.6, 0.6, 0.6),
+        borderWidth: 0.5,
+      });
+      page2.drawText(String(p.nr), {
+        x: cx + swatchSize + 8,
+        y: cy - 14,
+        size: 11,
+        font: fontBold,
+        color: rgb(0, 0, 0),
+      });
+      page2.drawText(p.hex || rgbToHex(p.r, p.g, p.b), {
+        x: cx + swatchSize + 8,
+        y: cy - 28,
+        size: 9,
+        font,
+        color: rgb(0.35, 0.35, 0.35),
+      });
+    });
+
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const safe = (state.projectName || 'project').replace(/[^\w\-]+/g, '-');
+    const filename = safe + '.pdf';
+    const file = new File([blob], filename, { type: 'application/pdf' });
+
+    toast('PDF ready');
+    openSaveSheet({
+      file, blob, filename,
+      title: 'Save PDF',
+      body: 'Pick how to save the print-ready PDF.'
+    });
+  } catch (err) {
+    console.error(err);
+    toast('PDF failed: ' + (err.message || err), 3000);
+  }
 }
 
 async function importProject(file) {

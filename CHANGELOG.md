@@ -6,6 +6,25 @@ Neueste Einträge **oben**.
 
 ---
 
+## [0.8.0] — 2026-05-18 — Druck-PDF der Vorlage
+
+### Added
+- Print-Button im Paint-Header (zwischen `Template` und `Backup`) mit Drucker-Icon + `Print`-Label
+- `exportPDF()` — generiert eine zweiseitige PDF: Seite 1 nummerierte Vorlage A4 (orientierungs-aware: quer wenn Bild quer, hoch wenn hoch), Seite 2 Farb-Legende als 4-Spalten-Grid (Swatch + Nummer + Hex)
+- `loadScript(src)` — generischer on-demand-Loader, idempotent über `data-loaded-src`
+- `dataURLToUint8Array()` und `rgbToHex()` als kleine Helfer für die PDF-Pipeline
+- pdf-lib (1.17.1) wird **on-demand** vom CDN geladen — Offline-Sessions ohne Druck-Wunsch zahlen die ~250 KB nie
+
+### Changed
+- `sw.js` — Cache `pbn-v9`
+- Toast „Generating PDF…" mit 60 s Timer (wird vom nachfolgenden „PDF ready" überschrieben) — Sichtbares Feedback während pdf-lib lädt und PNG embeddet
+
+### Decisions
+- **pdf-lib via CDN, dynamisch geladen** — vermeidet, dass jeder Start die Lib zieht; CDN-Cross-Origin wird vom Service-Worker eh nicht gecacht, also kein Offline-Bonus möglich
+- **PDF-Pfad verlässt das Sync-Gesture-Pattern bewusst** — `PDFDocument.create()` + `embedPng()` sind unvermeidbar async. Statt zu versuchen, share() inside Gesture zu erzwingen, nutzen wir konsequent `openSaveSheet()`, dessen Modal-Buttons frische Gestures sind. Damit kein silent fail mehr auf iOS.
+
+---
+
 ## [0.7.0] — 2026-05-17 — iOS-Backup-Fix + Detail-Presets + Discoverability
 
 ### Added

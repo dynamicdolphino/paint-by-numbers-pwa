@@ -149,6 +149,26 @@ Fix: Backup-Payload jetzt **vollständig synchron** aus `state.*` bauen (`canvas
 
 ---
 
+## 2026-05-18 — Druck-PDF via pdf-lib, on-demand geladen
+
+**Kontext:** Druck-PDF war als nächstes Item im BACKLOG. Anforderung: Seite 1 nummerierte Vorlage druckfertig auf A4, Seite 2 Farb-Legende. Funktionieren muss es auf iPad-PWA (Standalone-Modus) — also wieder die iOS-Share-Gesture-Falle.
+
+**Entscheidung / Erkenntnis:**
+
+1. **pdf-lib via CDN, dynamisch geladen** statt statisch im `<head>`. Grund: ~250 KB, brauchen die meisten Sessions nicht. Service Worker cached eh nur same-origin, also wäre Static-Load weder schneller noch offline-stabiler. Neuer Helper `loadScript()` ist idempotent via `data-loaded-src`-Attribut.
+
+2. **PDF-Pfad verlässt das Sync-Gesture-Pattern bewusst.** `PDFDocument.create()` und `embedPng()` sind beide async — wir können `navigator.share()` nicht inside dem ursprünglichen Click-Gesture aufrufen. Statt eines Hacks (z.B. PDF vorberechnen beim Mount): konsequent `openSaveSheet()` benutzen. Dessen Modal-Buttons sind selbst frische Gestures, die unter iOS-Standalone die Share-Anfrage passen. UX: Toast „Generating PDF…" (60 s) während pdf-lib lädt + zeichnet, dann Modal mit Share/Open-Buttons.
+
+3. **A4 orientierungs-aware.** Wenn `state.height >= state.width` → portrait (595.28 × 841.89 pt), sonst landscape. Bild wird mit `Math.min(availW/imgW, availH/imgH)`-Skalierung zentriert, 10 mm Rand, plus 18 pt Fußzeile für den Projektnamen.
+
+4. **Farb-Legende als 4-Spalten-Grid.** Swatch 34×34 pt (≈12 mm), rechts daneben Nummer (11 pt bold) + Hex (9 pt). Reicht bis zu ~36 Farben auf einer A4-Seite — auch das größte Preset (Fine = 50) bleibt knapp innerhalb der Seite; falls jemals zu viele Farben kommen, kann eine zweite Legenden-Seite ergänzt werden.
+
+**Begründung:** Der Druck-Use-Case (Offline malen mit Stiften, Vorlage verschenken) braucht keinen Echtzeit-Speed, also ist die kurze „Generating"-Phase akzeptabel. Wichtiger ist: keine stillen Failures auf iOS, und kein 250-KB-Tax für 99% der Sessions.
+
+**Auswirkung:** Drei neue Funktionen (`loadScript`, `dataURLToUint8Array`, `rgbToHex`) + `exportPDF`. HTML +1 Button im Paint-Header. sw.js Cache `pbn-v9`. Architekturlehre für künftige Features: Wenn der Build-Pfad unausweichlich async ist, nicht versuchen Share-im-Gesture zu hacken — `openSaveSheet()` ist das saubere Pattern.
+
+---
+
 ## 2026-05-17 — Session-Pause, Backlog für nächste Session
 
 **Kontext:** Drei offene Wünsche (Druck-PDF, Weniger-Farben-Preset, schönere Detail-Auswahl statt Slider). Session wird hier beendet, um Conversation-Tokens zu sparen.
