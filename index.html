@@ -259,6 +259,102 @@
   .toast.show { opacity: 1; }
 
   .hidden { display: none !important; }
+
+  /* ---------- SAVE SHEET (modal) ---------- */
+  /* Shown when navigator.share() is unavailable or rejected. Buttons inside become
+     fresh user-gesture sources, which iOS Safari needs for share/download. */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 24px;
+  }
+  .modal-backdrop.active { display: flex; }
+  .modal-card {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    max-width: 360px;
+    width: 100%;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .modal-card h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 22px;
+    margin: 0;
+  }
+  .modal-card p { margin: 0 0 6px; font-size: 14px; color: var(--text-dim); }
+  .modal-card .btn-primary,
+  .modal-card .btn-ghost { width: 100%; }
+
+  /* ---------- PRESET PILLS ---------- */
+  .preset-pills {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 0 6px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 0 -4px;
+  }
+  .preset-pills::-webkit-scrollbar { display: none; }
+  .preset-pill {
+    flex: 0 0 auto;
+    width: 80px;
+    min-height: 78px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    padding: 10px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  }
+  .preset-pill:active { transform: scale(0.97); }
+  .preset-pill .preset-label { font-size: 13px; font-weight: 500; line-height: 1.1; }
+  .preset-pill .preset-k     { font-size: 11px; color: var(--text-mute); font-variant-numeric: tabular-nums; }
+  .preset-pill .preset-hint  { font-size: 10px; color: var(--text-mute); line-height: 1.1; }
+  .preset-pill.active {
+    border: 2px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 9px 5px; /* compensate for the +1px border so layout doesn't jump */
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+  .preset-pill.active .preset-k,
+  .preset-pill.active .preset-hint { color: var(--accent); }
+
+  /* ---------- ICON LABELS (paint/prep header) ---------- */
+  /* Small label under each header icon so first-time users know what a button does. */
+  .paint-header .icon-btn,
+  .prep-header .icon-btn {
+    width: auto;
+    min-width: 44px;
+    height: auto;
+    padding: 6px 8px;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .icon-label {
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--text-dim);
+  }
+  .paint-header .icon-btn.active .icon-label,
+  .prep-header .icon-btn.active .icon-label { color: var(--accent); }
 </style>
 </head>
 <body>
@@ -286,6 +382,7 @@
   <div class="prep-header">
     <button class="icon-btn" id="prep-back" aria-label="Back">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      <span class="icon-label">Back</span>
     </button>
     <div class="title">Setup</div>
     <button class="btn-primary" id="generate-btn" style="padding:10px 20px;font-size:15px">Generate template</button>
@@ -295,9 +392,9 @@
     <div class="controls">
       <div class="control-row">
         <span class="label">Detail level</span>
-        <span class="value" id="detail-value">24 colors</span>
+        <span class="value" id="preset-current">Standard · 24 colors</span>
       </div>
-      <input type="range" id="detail-slider" min="0" max="3" step="1" value="1">
+      <div class="preset-pills" id="preset-pills"></div>
       <div class="progress" id="progress"><div class="progress-bar" id="progress-bar"></div></div>
       <div class="progress-label hidden" id="progress-label"></div>
     </div>
@@ -309,16 +406,20 @@
   <div class="paint-header">
     <button class="icon-btn" id="paint-back" aria-label="Back">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      <span class="icon-label">Back</span>
     </button>
     <div class="title">Paint</div>
-    <button class="icon-btn" id="toggle-template" aria-label="Toggle template" title="Template">
+    <button class="icon-btn" id="toggle-template" aria-label="Toggle template" title="Show or hide the number template">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span class="icon-label">Template</span>
     </button>
-    <button class="icon-btn" id="backup-btn" aria-label="Backup project" title="Backup project">
+    <button class="icon-btn" id="backup-btn" aria-label="Backup project" title="Save a project file (.pbn.json) you can re-import later">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+      <span class="icon-label">Backup</span>
     </button>
-    <button class="icon-btn" id="save-btn" aria-label="Save image" title="Save image">
+    <button class="icon-btn" id="save-btn" aria-label="Save image" title="Save the finished painting as a PNG">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span class="icon-label">Save</span>
     </button>
   </div>
   <div class="paint-stage" id="paint-stage">
@@ -343,6 +444,18 @@
   </div>
   <div class="palette" id="palette"></div>
 </section>
+
+<!-- Save / Backup fallback sheet — shown if navigator.share() rejects or is unavailable.
+     The buttons inside fire as NEW user gestures, which is what iOS needs. -->
+<div class="modal-backdrop" id="save-sheet" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="save-sheet-title">
+    <h3 id="save-sheet-title">Save</h3>
+    <p id="save-sheet-body">Tap an option below.</p>
+    <button class="btn-primary" id="save-sheet-share">Share…</button>
+    <button class="btn-ghost" id="save-sheet-open">Open in new tab</button>
+    <button class="btn-ghost" id="save-sheet-close">Cancel</button>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -432,11 +545,25 @@ const state = {
   brushSize: 14,
   templateVisible: true,
   projectId: null,
+  projectName: null,       // gespiegelt aus IndexedDB, damit Backup synchron im User-Gesture läuft
+  projectCreatedAt: null,
+  preset: 'standard',      // aktiver Detail-Preset (siehe PRESETS)
   zoom: 1,
   panX: 0, panY: 0,
   undoStack: [],           // Blob[] der letzten paint-canvas Snapshots
 };
 const UNDO_MAX = 10;
+
+// Detail-Presets ersetzen den alten DETAIL_OPTIONS-Slider.
+// minPxFactor wird an den Worker durchgereicht (mergeTiny), damit „Kids" auch
+// größere Felder bekommt — nicht nur weniger Farben bei gleicher Feldgröße.
+const PRESETS = [
+  { id: 'kids',     label: 'Kids',     k: 8,  minPxFactor: 0.0015,  hint: 'Big shapes' },
+  { id: 'easy',     label: 'Easy',     k: 16, minPxFactor: 0.0008,  hint: 'Forgiving' },
+  { id: 'standard', label: 'Standard', k: 24, minPxFactor: 0.0004,  hint: 'Default' },
+  { id: 'detailed', label: 'Detailed', k: 36, minPxFactor: 0.00025, hint: 'More color' },
+  { id: 'fine',     label: 'Fine',     k: 50, minPxFactor: 0.00015, hint: 'Most detail' },
+];
 
 // ---------- Start screen ----------
 $('#file-input').addEventListener('change', async (e) => {
@@ -515,6 +642,8 @@ async function resumeProject(id) {
     if (!p) { toast('Project not found'); return; }
     if (!p.templateBlob) { toast('Project is incomplete'); return; }
     state.projectId = p.id;
+    state.projectName = p.name || 'Project';
+    state.projectCreatedAt = p.createdAt || Date.now();
     state.width = p.width; state.height = p.height;
     state.palette = p.palette;
     state.origDataURL = p.origDataURL;
@@ -532,22 +661,48 @@ async function blobToBitmap(blob) {
 }
 
 // ---------- Prep screen ----------
-const DETAIL_OPTIONS = [12, 24, 36, 50];
-$('#detail-slider').addEventListener('input', () => {
-  const v = +$('#detail-slider').value;
-  $('#detail-value').textContent = DETAIL_OPTIONS[v] + ' colors';
-});
-// Default to detailed (36 colors) instead of medium
-$('#detail-slider').value = 2;
-$('#detail-value').textContent = DETAIL_OPTIONS[2] + ' colors';
+function renderPresetPills() {
+  const wrap = $('#preset-pills');
+  wrap.innerHTML = '';
+  for (const preset of PRESETS) {
+    const pill = document.createElement('button');
+    pill.className = 'preset-pill' + (preset.id === state.preset ? ' active' : '');
+    pill.dataset.id = preset.id;
+    pill.type = 'button';
+    pill.setAttribute('aria-pressed', String(preset.id === state.preset));
+    pill.innerHTML =
+      `<span class="preset-label">${preset.label}</span>` +
+      `<span class="preset-k">${preset.k} colors</span>` +
+      `<span class="preset-hint">${preset.hint}</span>`;
+    pill.addEventListener('click', () => selectPreset(preset.id));
+    wrap.appendChild(pill);
+  }
+  updatePresetSummary();
+}
+function selectPreset(id) {
+  state.preset = id;
+  const wrap = $('#preset-pills');
+  for (const el of wrap.querySelectorAll('.preset-pill')) {
+    const isActive = el.dataset.id === id;
+    el.classList.toggle('active', isActive);
+    el.setAttribute('aria-pressed', String(isActive));
+  }
+  updatePresetSummary();
+}
+function updatePresetSummary() {
+  const p = PRESETS.find((x) => x.id === state.preset) || PRESETS[2];
+  const out = $('#preset-current');
+  if (out) out.textContent = `${p.label} · ${p.k} colors`;
+}
+
 $('#prep-back').addEventListener('click', () => go('start'));
 
 $('#generate-btn').addEventListener('click', async () => {
-  const k = DETAIL_OPTIONS[+$('#detail-slider').value];
+  const preset = PRESETS.find((p) => p.id === state.preset) || PRESETS[2];
   $('#generate-btn').disabled = true;
   $('#progress').classList.add('active');
   $('#progress-label').classList.remove('hidden');
-  await generateTemplate(k);
+  await generateTemplate(preset.k, preset.minPxFactor);
   $('#generate-btn').disabled = false;
   $('#progress').classList.remove('active');
   $('#progress-label').classList.add('hidden');
@@ -556,15 +711,17 @@ $('#generate-btn').addEventListener('click', async () => {
 // ---------- Worker (inline) ----------
 const workerSrc = `
 self.onmessage = async (e) => {
-  const { imageData, k } = e.data;
+  const { imageData, k, minPxFactor } = e.data;
   try {
     const { palette, idMap, w, h } = quantize(imageData, k, (p) => post('progress', { stage: 'Analyzing colors', p }));
     smoothIDs(idMap, w, h);
     post('progress', { stage: 'Forming regions', p: 0.55 });
     const { regions, regionMap } = labelRegions(idMap, w, h);
     post('progress', { stage: 'Merging tiny areas', p: 0.7 });
-    // dynamic threshold: ~0.04% of total pixels, min 40, max 200
-    const minPx = Math.max(40, Math.min(200, Math.round(w * h * 0.0004)));
+    // Detail-Preset steuert die minimale Feld-Größe. Cap auf 8000 px verhindert,
+    // dass „Kids" auf 4K-Fotos den ganzen Hintergrund zu einer Riesen-Fläche merged.
+    const factor = (typeof minPxFactor === 'number' && minPxFactor > 0) ? minPxFactor : 0.0004;
+    const minPx = Math.max(40, Math.min(8000, Math.round(w * h * factor)));
     mergeTiny(regions, regionMap, idMap, w, h, minPx);
     post('progress', { stage: 'Outlines and numbers', p: 0.85 });
     const numbered = makeNumbering(regions, regionMap, idMap, w, h);
@@ -869,7 +1026,7 @@ function render(w, h, idMap, regionMap, paletteRGB, numbered) {
 `;
 const workerURL = URL.createObjectURL(new Blob([workerSrc], { type: 'application/javascript' }));
 
-async function generateTemplate(k) {
+async function generateTemplate(k, minPxFactor) {
   // ImageData ermitteln
   const w = state.width, h = state.height;
   const c = document.createElement('canvas');
@@ -895,7 +1052,7 @@ async function generateTemplate(k) {
       }
     };
     wk.onerror = (err) => { toast('Worker error'); reject(err); };
-    wk.postMessage({ imageData, k }, [imageData.data.buffer]);
+    wk.postMessage({ imageData, k, minPxFactor }, [imageData.data.buffer]);
   });
 }
 
@@ -935,13 +1092,15 @@ async function finishTemplate(payload) {
   state.templateBitmap = await createImageBitmap(tplCanvas);
   state.paintBitmap = null;
   state.projectId = 'p_' + Date.now();
+  state.projectName = 'Project ' + formatProjectStamp(new Date());
+  state.projectCreatedAt = Date.now();
 
   // Persist
   const templateBlob = await new Promise(res => tplCanvas.toBlob(b => res(b), 'image/png'));
   await dbPut({
     id: state.projectId,
-    name: 'Project ' + formatProjectStamp(new Date()),
-    createdAt: Date.now(),
+    name: state.projectName,
+    createdAt: state.projectCreatedAt,
     updatedAt: Date.now(),
     width: w, height: h,
     palette: finalPalette,
@@ -1309,58 +1468,179 @@ $('#import-input').addEventListener('change', async (e) => {
   e.target.value = '';
 });
 
-async function backupProject() {
+/* ------------------------------------------------------------------
+   iOS-correct "share or fallback" pattern.
+
+   iOS Safari (especially in installed-PWA / standalone mode) ONLY honors
+   navigator.share() if it is called inside the same user-gesture task as
+   the click. Any `await` before share() loses the gesture token, the call
+   is rejected silently, and `<a download>` is also ignored in standalone
+   mode — net result: the user taps the button and nothing happens.
+
+   Fix:
+   - Build the entire payload SYNCHRONOUSLY in the click handler
+     (canvas.toDataURL is sync; we parse base64 → Blob ourselves).
+   - Call navigator.share() before any await.
+   - If share() rejects (or is unavailable), open a modal whose own
+     buttons constitute a NEW user gesture and offer retry / open-in-tab.
+   ------------------------------------------------------------------ */
+
+// Parse a `data:...;base64,...` URL into a Blob synchronously.
+// Used in the backup/save click handlers, where we cannot afford to await.
+function dataURLToBlobSync(dataURL) {
+  const comma = dataURL.indexOf(',');
+  const meta = dataURL.slice(0, comma);
+  const body = dataURL.slice(comma + 1);
+  const mime = (meta.match(/data:(.*?);/) || [, 'application/octet-stream'])[1];
+  const bin = atob(body);
+  const len = bin.length;
+  const arr = new Uint8Array(len);
+  for (let i = 0; i < len; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
+// Render the current template bitmap onto a fresh canvas so we can serialise it.
+// Synchronous so it stays inside the click gesture.
+function templateCanvasFromState() {
+  const c = document.createElement('canvas');
+  c.width = state.width; c.height = state.height;
+  c.getContext('2d').drawImage(state.templateBitmap, 0, 0);
+  return c;
+}
+
+// Open the fallback sheet. Its buttons fire as fresh user gestures, which
+// iOS needs for either share() or window.open() to work in standalone mode.
+let _saveSheetCleanup = null;
+function openSaveSheet({ file, blob, filename, title, body }) {
+  // If the sheet is re-opened before the previous instance was dismissed
+  // (e.g. share rejects after an earlier open) tear down its listeners first,
+  // otherwise they would leak forever.
+  if (_saveSheetCleanup) { _saveSheetCleanup(); _saveSheetCleanup = null; }
+
+  const sheet = $('#save-sheet');
+  const titleEl = $('#save-sheet-title');
+  const bodyEl = $('#save-sheet-body');
+  const shareBtn = $('#save-sheet-share');
+  const openBtn = $('#save-sheet-open');
+  const closeBtn = $('#save-sheet-close');
+
+  titleEl.textContent = title || 'Save';
+  bodyEl.textContent = body || 'Tap an option below.';
+
+  // Object URL is created lazily and revoked on close.
+  let url = null;
+  function ensureURL() { if (!url) url = URL.createObjectURL(blob); return url; }
+  function close() {
+    sheet.classList.remove('active');
+    sheet.setAttribute('aria-hidden', 'true');
+    if (_saveSheetCleanup) { _saveSheetCleanup(); _saveSheetCleanup = null; }
+    // Defer the revoke so a just-clicked <a download> fallback has time to fetch
+    // the blob before its URL disappears.
+    if (url) {
+      const u = url;
+      url = null;
+      setTimeout(() => URL.revokeObjectURL(u), 2000);
+    }
+  }
+
+  // Hide the share button if Web Share with files is not available at all
+  // (e.g. desktop Chrome without the experimental flag).
+  const canShare = !!(navigator.canShare && file && navigator.canShare({ files: [file] }));
+  shareBtn.style.display = canShare ? '' : 'none';
+
+  const onShare = () => {
+    if (!canShare) { close(); return; }
+    navigator.share({ files: [file], title: title || filename })
+      .then(() => { toast('Saved'); close(); })
+      .catch((err) => {
+        if (err && err.name === 'AbortError') return; // user cancelled — leave sheet open
+        bodyEl.textContent = 'Sharing was blocked. Use "Open in new tab" and then save from there.';
+      });
+  };
+  const onOpen = () => {
+    // window.open from a click handler counts as a user gesture, even in PWA standalone.
+    // Falls back to a download-link click for desktop browsers.
+    const w = window.open(ensureURL(), '_blank');
+    if (!w) {
+      const a = document.createElement('a');
+      a.href = ensureURL(); a.download = filename; a.rel = 'noopener';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+    close();
+  };
+  const onClose = () => close();
+
+  shareBtn.addEventListener('click', onShare);
+  openBtn.addEventListener('click', onOpen);
+  closeBtn.addEventListener('click', onClose);
+  _saveSheetCleanup = () => {
+    shareBtn.removeEventListener('click', onShare);
+    openBtn.removeEventListener('click', onOpen);
+    closeBtn.removeEventListener('click', onClose);
+  };
+
+  sheet.classList.add('active');
+  sheet.setAttribute('aria-hidden', 'false');
+}
+
+function backupProject() {
   if (!state.projectId) { toast('Nothing to back up'); return; }
-  // Flush the current paint canvas to IndexedDB first, so the backup is up to date
-  await flushSave();
-  const proj = await dbGet(state.projectId);
-  if (!proj) { toast('Project not found'); return; }
-  const tplB64 = proj.templateBlob ? await blobToBase64(proj.templateBlob) : null;
-  const paintB64 = proj.paintBlob ? await blobToBase64(proj.paintBlob) : null;
+  if (!state.templateBitmap) { toast('Template not ready yet'); return; }
+
+  // --- Everything from here to navigator.share() MUST be synchronous. ---
+  // Pull the freshest paint + template straight from the canvases, not from
+  // IndexedDB, so we don't need to await flushSave() and lose the gesture.
+  const paintDataURL = $('#canvas-paint').toDataURL('image/png');
+  const templateDataURL = templateCanvasFromState().toDataURL('image/png');
+
   const payload = {
     format: 'paint-by-numbers-pwa',
     version: 1,
-    name: proj.name,
-    createdAt: proj.createdAt,
+    name: state.projectName || 'Project',
+    createdAt: state.projectCreatedAt || Date.now(),
     updatedAt: Date.now(),
-    width: proj.width,
-    height: proj.height,
-    palette: proj.palette,
-    origDataURL: proj.origDataURL,
-    templateDataURL: tplB64 ? 'data:image/png;base64,' + tplB64 : null,
-    paintDataURL: paintB64 ? 'data:image/png;base64,' + paintB64 : null,
+    width: state.width,
+    height: state.height,
+    palette: state.palette,
+    origDataURL: state.origDataURL,
+    templateDataURL,
+    paintDataURL,
   };
+
   const json = JSON.stringify(payload);
   const blob = new Blob([json], { type: 'application/json' });
-  const safe = (proj.name || 'project').replace(/[^\w\-]+/g, '-');
+  const safe = (state.projectName || 'project').replace(/[^\w\-]+/g, '-');
   const filename = `${safe}.pbn.json`;
+  const file = new File([blob], filename, { type: 'application/json' });
 
-  // iOS Safari (especially in standalone PWA) ignores <a download>. Prefer Web Share API with a file.
-  try {
-    const file = new File([blob], filename, { type: 'application/json' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: proj.name || 'Project backup' });
-      toast('Backup shared');
-      return;
-    }
-  } catch (err) {
-    // user cancelled the share or share failed — fall through to download fallback
+  // Persist to IndexedDB in the background — does NOT block the share call.
+  flushSave().catch(() => {});
+
+  // First try: native share inside the current user gesture.
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], title: state.projectName || 'Project backup' })
+      .then(() => toast('Backup shared'))
+      .catch((err) => {
+        if (err && err.name === 'AbortError') return; // user dismissed — fine
+        openSaveSheet({ file, blob, filename,
+          title: 'Save backup',
+          body: 'Sharing was blocked. Pick another way to save your backup.' });
+      });
+    return;
   }
-  // Fallback: classic download (works on desktop browsers; tap-and-hold on iOS opens a "Save" sheet)
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename; a.rel = 'noopener';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
-  toast('Backup saved');
+
+  // No Web Share at all → straight to the fallback sheet.
+  openSaveSheet({ file, blob, filename,
+    title: 'Save backup',
+    body: 'Pick how to save the project file.' });
 }
 
 async function importProject(file) {
   const text = await file.text();
-  const data = JSON.parse(text);
-  if (data.format !== 'paint-by-numbers-pwa') throw new Error('Not a valid backup file');
+  let data;
+  try { data = JSON.parse(text); }
+  catch (_) { throw new Error('Invalid backup file (not JSON)'); }
+  if (!data || data.format !== 'paint-by-numbers-pwa') throw new Error('Not a valid backup file');
   const tplBlob = data.templateDataURL ? await dataURLToBlob(data.templateDataURL) : null;
   const paintBlob = data.paintDataURL ? await dataURLToBlob(data.paintDataURL) : null;
   const newId = 'p_' + Date.now();
@@ -1381,21 +1661,15 @@ async function importProject(file) {
   toast('Project imported');
 }
 
-function blobToBase64(blob) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res(String(r.result).split(',')[1] || '');
-    r.onerror = rej;
-    r.readAsDataURL(blob);
-  });
-}
 async function dataURLToBlob(dataURL) {
   const res = await fetch(dataURL);
   return await res.blob();
 }
 
-$('#save-btn').addEventListener('click', async () => {
-  // Compose & download
+$('#save-btn').addEventListener('click', () => {
+  // Build the merged image fully synchronously and reuse the same
+  // share-or-fallback path as the backup button. Without this, iOS-PWA users
+  // tap Save and nothing happens (toBlob's async callback + <a download>).
   const out = document.createElement('canvas');
   out.width = state.width; out.height = state.height;
   const c = out.getContext('2d');
@@ -1405,15 +1679,25 @@ $('#save-btn').addEventListener('click', async () => {
     c.drawImage($('#canvas-template'), 0, 0);
     c.globalCompositeOperation = 'source-over';
   }
-  out.toBlob((blob) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'painting-' + Date.now() + '.png';
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }, 'image/png');
-  toast('Image saved');
+  const dataURL = out.toDataURL('image/png');           // sync
+  const blob = dataURLToBlobSync(dataURL);              // sync
+  const filename = 'painting-' + Date.now() + '.png';
+  const file = new File([blob], filename, { type: 'image/png' });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], title: state.projectName || 'Painting' })
+      .then(() => toast('Image shared'))
+      .catch((err) => {
+        if (err && err.name === 'AbortError') return;
+        openSaveSheet({ file, blob, filename,
+          title: 'Save image',
+          body: 'Sharing was blocked. Pick another way to save the image.' });
+      });
+    return;
+  }
+  openSaveSheet({ file, blob, filename,
+    title: 'Save image',
+    body: 'Pick how to save the image.' });
 });
 
 window.addEventListener('resize', () => {
@@ -1421,6 +1705,7 @@ window.addEventListener('resize', () => {
 });
 
 // Init
+renderPresetPills();
 renderResumeList();
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});

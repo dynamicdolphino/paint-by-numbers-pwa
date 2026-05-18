@@ -6,6 +6,36 @@ Neueste Einträge **oben**.
 
 ---
 
+## [0.7.0] — 2026-05-17 — iOS-Backup-Fix + Detail-Presets + Discoverability
+
+### Added
+- `PRESETS` mit fünf Detail-Stufen: Kids (8 / sehr grobe Felder), Easy (16), Standard (24), Detailed (36), Fine (50 Farben)
+- Preset-Pill-Auswahl im Prep-Screen (Cards mit Label + Farbenzahl + Hinweis) — ersetzt den alten Slider
+- `minPxFactor` pro Preset, an den Worker durchgereicht — „Kids" liefert jetzt wirklich gröbere Felder, nicht nur weniger Farben
+- Text-Labels unter allen Header-Icons (`Back`, `Template`, `Backup`, `Save`) — neue User wissen sofort was die Buttons tun
+- Generisches `openSaveSheet()` Modal als sichtbarer Fallback wenn `navigator.share()` rejected oder fehlt
+- Synchron-Helfer `dataURLToBlobSync()` und `templateCanvasFromState()`
+
+### Changed
+- `state` um `projectName`, `projectCreatedAt`, `preset` erweitert (damit Backup synchron ohne `dbGet()` läuft)
+- `backupProject()` baut JSON-Payload jetzt komplett synchron aus `state.*` und ruft `navigator.share()` **vor** allen `await`s auf
+- `#save-btn` nutzt das gleiche Sync-Pattern (vorher `toBlob`-Async-Callback + stilles `<a download>`)
+- Worker-Threshold für `mergeTiny`: Cap erhöht von 200 px auf 8000 px, damit grobe Presets nicht abgeklemmt werden
+- `sw.js` — Cache `pbn-v8`
+
+### Fixed
+- **Backup-Speichern auf iOS-PWA: Klick passierte sichtbar nichts.** Ursache war Gesture-Token-Verlust durch `await`s vor `navigator.share()`; iOS-Safari rejected dann silent und der `<a download>`-Fallback wird im Standalone-Modus ignoriert
+- Save-Image-Button hatte denselben iOS-Bug (toBlob-Callback) — jetzt auch synchron
+- Backup-Modal-Listener-Leak bei wiederholtem Öffnen ohne Schließen
+- Object-URL wurde im Fallback zu früh revoked, bevor der `<a download>`-Fetch durch war
+- `importProject` gab bei kaputter JSON-Datei kryptischen `SyntaxError` statt User-freundlicher Meldung
+
+### Removed
+- `DETAIL_OPTIONS` Array, `#detail-slider`, `#detail-value`
+- Toter Code `blobToBase64()` (Backup nutzt jetzt synchrone Pfade)
+
+---
+
 ## [0.6.0] — 2026-05-16 — Projekt-Dokumentation + Dateiname-Fix
 
 ### Added

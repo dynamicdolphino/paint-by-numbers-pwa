@@ -111,6 +111,44 @@
 
 ---
 
+## 2026-05-17 — iOS Web-Share braucht synchronen User-Gesture-Kontext
+
+**Kontext:** Michael berichtete dass das Backup-Speichern auf dem iPad „oft nicht" funktioniert — Klick auf den Backup-Button und visuell passierte einfach nichts. Reproduzierbar im PWA-Standalone-Modus (Home-Bildschirm), nicht im normalen Safari-Tab.
+
+**Entscheidung / Erkenntnis:** Der bisherige `backupProject()` lief `await flushSave()` → `await dbGet()` → `await blobToBase64()` vor `navigator.share()`. iOS-Safari verfällt das User-Gesture-Token nach dem ersten `await`. Beim Aufruf von `share()` ist es weg, der Call rejected silent, und der `<a download>`-Fallback wird im PWA-Standalone von iOS komplett ignoriert. Net result: Klick → nichts.
+
+Fix: Backup-Payload jetzt **vollständig synchron** aus `state.*` bauen (`canvas.toDataURL()` ist sync, eigene `dataURLToBlobSync()` parst Base64 selbst). `navigator.share()` läuft im selben Gesture. Wenn das trotzdem rejected oder nicht verfügbar ist, öffnet sich ein sichtbares Modal — dessen Buttons sind neue Gestures und können noch share/window.open. Damit der Backup nicht auf `dbGet()` warten muss, wurden `state.projectName` und `state.projectCreatedAt` ins State-Objekt gespiegelt.
+
+**Begründung:** Der gleiche Bug existierte auch im `#save-btn` (toBlob-Callback ist async), wurde nur seltener bemerkt weil weniger benutzt — gleich mitgefixt. Beide nutzen jetzt denselben `openSaveSheet()`-Fallback, also einheitliches UX-Pattern.
+
+**Auswirkung:** Backup und Image-Save funktionieren jetzt in iOS-PWA-Standalone zuverlässig. Architektur-Lehre für die ganze Codebase: Vor jedem `navigator.share()` darf kein `await` stehen. Bei neuen Share-/Download-Buttons immer das Modal-Pattern verwenden, das gibt einen sichtbaren Recovery-Pfad wenn iOS doch mal die erste Share-Anfrage ablehnt.
+
+---
+
+## 2026-05-17 — Slider raus, Preset-Pills rein
+
+**Kontext:** Der `<input type="range">` mit den 4 numerischen Stufen 12/24/36/50 zwang den User zu einer Zahl-Entscheidung ohne Bedeutung. Auf Touch unangenehm präzise zu treffen.
+
+**Entscheidung:** Ersetzt durch fünf Preset-Cards (Kids/Easy/Standard/Detailed/Fine) mit Label + Farbenzahl + Hinweistext. Plus `minPxFactor` pro Preset — „Kids" hat jetzt nicht nur weniger Farben sondern auch wirklich gröbere Felder (vorher: gleicher fester Threshold im Worker).
+
+**Begründung:** Presets übersetzen die K-Zahl in Intent („Für Kinder" statt „8 Farben"). Card-Auswahl ist auf Touch zielsicher, kommuniziert die Auswahl klarer, und schafft Platz für den `hint`-Text. Mit dem neuen Cap von 8000 px im Worker können Kids-Presets auf hochauflösenden Fotos auch wirklich große Flächen mergen.
+
+**Auswirkung:** `state.preset` ersetzt den Slider-Wert, `generateTemplate(k, minPxFactor)` bekommt beide Parameter, Worker-`mergeTiny` nutzt den durchgereichten Faktor. Default ist „Standard" (24) — bewusst eine Stufe niedriger als der bisherige Default-Slider (36), weil 24 für die meisten Fotos der bessere Startpunkt ist.
+
+---
+
+## 2026-05-17 — Text-Labels unter Icons für neue User
+
+**Kontext:** Vier Icon-Buttons im Paint-Header ohne sichtbaren Text. Erfahrene User raten richtig, neue User wissen nicht was hinter „Auge", „Truhe", „Pfeil-runter" steckt — selbst mit `title=`-Attribut, weil das auf Touch nicht erscheint.
+
+**Entscheidung:** Kleines `<span class="icon-label">` unter jedem Header-Icon (`Back`, `Template`, `Backup`, `Save`). 10 px, dim-Farbe, im Active-State accent. Header wird dadurch ~10 px höher — vernachlässigbar.
+
+**Begründung:** Einfacher als eine First-Launch-Tour, kein State zu verwalten, funktioniert offline, sofort verständlich für Erstöffner. Im Floating-Toolbar (Brush/Eraser/Undo) bleiben die Labels weg, weil die Icons dort universeller sind und der Platz knapp ist.
+
+**Auswirkung:** Header-CSS scoped per `.paint-header .icon-btn` und `.prep-header .icon-btn`, damit der Floating-Toolbar-Look unverändert bleibt.
+
+---
+
 ## 2026-05-17 — Session-Pause, Backlog für nächste Session
 
 **Kontext:** Drei offene Wünsche (Druck-PDF, Weniger-Farben-Preset, schönere Detail-Auswahl statt Slider). Session wird hier beendet, um Conversation-Tokens zu sparen.
