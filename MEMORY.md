@@ -178,3 +178,25 @@ Fix: Backup-Payload jetzt **vollständig synchron** aus `state.*` bauen (`canvas
 **Begründung:** Die nächste Session (egal welche KI, egal wann) kann ohne Aufwärm-Runde direkt loslegen. Das BACKLOG erklärt nicht nur *was* zu tun ist, sondern auch *wo im Code* und *wie es konkret aussehen soll*.
 
 **Auswirkung:** Nächste Session sollte beginnen mit `README.md` → `BACKLOG.md` → loslegen. MEMORY.md wird bei Implementierung um die jeweilige Entscheidung ergänzt, CHANGELOG.md bekommt einen neuen Versions-Eintrag.
+
+---
+
+## 2026-05-21 — v0.9.0 Antigravity-Merge: SEO, Tutorial, Print-Sheet
+
+**Kontext:** Zwischen Session-Pause (2026-05-17) und heute habe ich mit Antigravity weiter am Projekt gearbeitet — allerdings in einem separaten Ordner `paint-by-numbers-v2`, nicht im Haupt-Repo. Die v2 hat ein SEO-Komplett-Paket, ein Print-Optionen-Modal, ein Tutorial-Modal, einen Like-Button und ein „Past Projects"-Hero bekommen. Heute soll der Code zurück ins Hauptprojekt und als v0.9.0 released werden.
+
+**Entscheidung / Erkenntnis:**
+
+1. **Diff-Analyse zuerst, dann Merge.** Vergleich der beiden Ordner zeigte: nur 3 Dateien geändert (`index.html`, `manifest.webmanifest`, `sw.js`), 2 neu (`robots.txt`, `sitemap.xml`). Alle Markdown-Docs (MEMORY, CHANGELOG, BACKLOG, brief, SPEC, README) waren bit-identisch — Antigravity hat die Doku nicht angefasst. Heißt: trivialer Drop-in-Merge.
+
+2. **v1 hatte 6 staged + 6 unstaged Änderungen, die sich gegenseitig aufhoben** (`git diff HEAD` war leer). Ursache vermutlich ein verkorkster `git reset HEAD` aus einer früheren Session. Lösung: `git reset HEAD -- . && git checkout -- .` — danach war working tree clean auf HEAD = `fef9960` (0.8.0).
+
+3. **Branch `v0.9.0-antigravity-merge`** statt direkt auf main. Begründung: Diff in der Git-Historie sichtbar, falls jemals jemand fragt „wann kam der SEO-Block?". Solo-Repo, daher kein PR, sondern direkter Merge auf main + Tag.
+
+4. **Versionssprung 0.8.0 → 0.9.0.** Kein Major weil keine Architektur-Brüche, kein Patch weil deutlich neue Features (SEO, Tutorial, Print-Modal). Sauberer Minor-Release.
+
+5. **Erstmaliges Setzen von Git-Tags.** Vor 0.9.0 existierten gar keine Tags im Repo (CHANGELOG.md führte zwar Versionen, aber `git tag` war leer). Beim Push werden retrospektiv `v0.8.0` (auf `fef9960`) und `v0.9.0` (auf dem neuen Merge-Commit) angelegt.
+
+**Begründung:** Antigravity-Arbeit nicht zu verwerfen ist wichtig, aber „verschiedene Codebases in zwei Ordnern" ist langfristig untragbar. Single Source of Truth muss das GitHub-Repo bleiben. Tags machen die Versions-Historie auf GitHub als Releases sichtbar — bisher nur in CHANGELOG.md erkennbar.
+
+**Auswirkung:** Künftig bei Arbeit mit Antigravity (oder anderen Agents): direkt im Hauptordner arbeiten und committen, nicht in Parallel-Ordner. Falls Parallel-Ordner unvermeidbar (z.B. Experimente, die nicht ins Repo sollen), `_experiments/` als geignorerte Schwester. Der `paint-by-numbers-v2`-Ordner wird heute nach `_archive/paint-by-numbers-v2-2026-05-21/` verschoben.

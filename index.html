@@ -2,11 +2,42 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Paint by Numbers</title>
+<title>Paint by Numbers — Free Custom Template Generator from Your Photos</title>
+<meta name="description" content="Turn any photo into a paint-by-numbers template instantly. Free online tool with Apple Pencil support — no uploads, everything stays private on your device.">
+<meta name="keywords" content="paint by numbers, custom paint by numbers, photo to paint by numbers, template generator, free, online, iPad, Apple Pencil, paint by numbers from photo">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Paint">
+<meta name="theme-color" content="#0A0A0A">
+<meta name="author" content="Paint by Numbers PWA">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Paint by Numbers — Custom Templates from Your Photos">
+<meta property="og:description" content="Turn any photo into a paint-by-numbers template. Free, private, works offline on any device.">
+<meta property="og:url" content="https://dynamicdolphino.github.io/paint-by-numbers-pwa/">
+<meta property="og:site_name" content="Paint by Numbers">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Paint by Numbers — Custom Templates from Photos">
+<meta name="twitter:description" content="Free online tool to create paint-by-numbers templates from your own photos. Works offline.">
+<!-- Canonical -->
+<link rel="canonical" href="https://dynamicdolphino.github.io/paint-by-numbers-pwa/">
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Paint by Numbers",
+  "description": "Turn any photo into a paint-by-numbers template instantly. Free online tool with Apple Pencil support.",
+  "url": "https://dynamicdolphino.github.io/paint-by-numbers-pwa/",
+  "applicationCategory": "DesignApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "featureList": ["Photo to paint-by-numbers conversion", "Apple Pencil support", "Offline capable", "PDF export", "Project backup"]
+}
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
@@ -30,6 +61,23 @@
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
   body {
     background: var(--bg);
     color: var(--text);
@@ -58,8 +106,10 @@
     display: none;
     flex-direction: column;
     padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+    opacity: 0;
+    transition: opacity 0.25s ease;
   }
-  .screen.active { display: flex; }
+  .screen.active { display: flex; opacity: 1; }
 
   /* ---------- START ---------- */
   #screen-start {
@@ -71,8 +121,25 @@
       radial-gradient(60% 50% at 50% 0%, rgba(232,101,26,0.10), transparent 70%),
       var(--bg);
   }
-  #screen-start .inner { max-width: 480px; display: flex; flex-direction: column; gap: 24px; align-items: center; }
+  #screen-start .inner {
+    max-width: 960px; width: 100%;
+    display: flex; flex-direction: column; gap: 48px; align-items: center; justify-content: center;
+    animation: fadeSlideIn 0.5s ease both;
+  }
+  .hero-content {
+    display: flex; flex-direction: column; gap: 24px; align-items: center; max-width: 480px; width: 100%;
+  }
+  .hero-projects {
+    display: flex; flex-direction: column; gap: 16px; align-items: center;
+    width: 100%; max-width: 480px; min-width: 0;
+  }
+  .hero-projects .title { font-size: 13px; color: var(--text-mute); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; }
+
   #screen-start .tag { font-size: 13px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; }
+  #screen-start .subtitle {
+    font-size: 14px; color: var(--text-mute); max-width: 340px; line-height: 1.55;
+  }
+  .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
   .btn-primary {
     background: var(--accent);
     color: #fff;
@@ -83,6 +150,15 @@
     transition: transform 0.15s ease, background 0.15s ease;
   }
   .btn-primary:active { transform: scale(0.97); background: #d65a14; }
+  .btn-primary:disabled, .btn-primary.loading {
+    opacity: 0.6; pointer-events: none; cursor: not-allowed;
+  }
+  .btn-primary .spinner {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
+    border-radius: 50%; animation: spin 0.6s linear infinite;
+    vertical-align: middle; margin-right: 8px;
+  }
   .btn-ghost {
     background: var(--surface);
     color: var(--text);
@@ -92,21 +168,89 @@
     font-size: 15px;
   }
   .btn-ghost:active { background: var(--surface-2); }
-  .resume-list { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
-  .resume-item {
-    display: flex; align-items: center; gap: 14px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px;
-    text-align: left;
-    width: 100%;
+  .resume-list {
+    width: max-content; max-width: 100%;
+    display: flex; gap: 12px; margin-top: 12px; padding: 4px 4px 12px;
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
   }
-  .resume-item img { width: 56px; height: 56px; object-fit: cover; border-radius: 10px; background: #222; }
-  .resume-item .meta { flex: 1; }
-  .resume-item .meta .name { font-size: 15px; }
+  .resume-list::-webkit-scrollbar { display: none; }
+  .resume-item {
+    scroll-snap-align: start;
+    flex: 0 0 200px; /* Card width */
+    display: flex; flex-direction: column; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 12px; text-align: left;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .resume-item:active { transform: scale(0.98); }
+  .resume-item img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; background: #222; }
+  .resume-item .meta { display: flex; flex-direction: column; gap: 2px; }
+  .resume-item .meta .name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .resume-item .meta .when { font-size: 12px; color: var(--text-mute); }
-  .resume-item .del { color: var(--text-mute); padding: 6px 10px; }
+  .resume-item .actions { display: flex; gap: 8px; margin-top: auto; }
+  .resume-item .actions button { flex: 1; padding: 8px 0; font-size: 13px; }
+  .resume-item .del { flex: 0 0 36px !important; color: var(--text-mute); background: rgba(255,255,255,0.05); border: none; border-radius: 8px; }
+  
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; padding: 48px 24px; text-align: center;
+    background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius-lg);
+    width: 100%; color: var(--text-mute);
+  }
+  .empty-state .empty-icon { opacity: 0.5; margin-bottom: 8px; }
+  .empty-state .empty-icon svg { width: 48px; height: 48px; stroke-width: 1.5; }
+  .empty-state .empty-title { font-size: 15px; font-weight: 500; color: var(--text-dim); }
+  .empty-state .empty-sub { font-size: 13px; max-width: 220px; line-height: 1.4; }
+
+  .bottom-links {
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: center;
+    margin-top: 12px; width: 100%;
+  }
+  .donate-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--surface); color: var(--text);
+    padding: 8px 14px; border-radius: 999px;
+    font-weight: 500; font-size: 13px; text-decoration: none;
+    border: 1px solid var(--border);
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .donate-btn:active { transform: scale(0.97); }
+  .donate-btn:hover { background: var(--surface-2); }
+
+  .trust-badge {
+    display: flex; align-items: center; gap: 12px; margin-top: 4px;
+  }
+  .like-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface); color: var(--text-mute);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .like-btn:hover { background: var(--surface-2); color: var(--text); transform: scale(1.05); }
+  .like-btn.liked { background: var(--surface-2); color: var(--accent); border-color: var(--accent-soft); }
+  .like-btn svg { width: 14px; height: 14px; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  .like-btn.liked svg { fill: currentColor; transform: scale(1.2); }
+  .trust-text { font-size: 13px; color: var(--text-mute); }
+
+  @media (min-width: 800px) {
+    #screen-start { text-align: left; }
+    #screen-start .inner { flex-direction: row; align-items: center; justify-content: space-between; gap: 60px; }
+    .hero-content { align-items: flex-start; text-align: left; flex: 1; max-width: 440px; }
+    .hero-projects { align-items: flex-start; flex: 1.2; max-width: 520px; }
+    .hero-buttons { justify-content: flex-start; }
+    .bottom-links { justify-content: flex-start; }
+    .resume-list { 
+      padding: 0; 
+      display: grid; 
+      grid-template-columns: repeat(2, 1fr); 
+      gap: 16px; 
+      width: 100%;
+      overflow: visible;
+    }
+    .resume-item { flex: auto; max-width: 100%; }
+  }
 
   /* ---------- PREP ---------- */
   #screen-prep { padding: 0; }
@@ -173,12 +317,35 @@
   }
   .progress {
     margin-top: 4px;
-    height: 4px; background: var(--surface-2); border-radius: 999px; overflow: hidden;
+    height: 6px; background: var(--surface-2); border-radius: 999px; overflow: hidden;
     display: none;
   }
   .progress.active { display: block; }
-  .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
+  .progress-bar {
+    height: 100%; width: 0%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), #f5923a, var(--accent));
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease infinite;
+    transition: width 0.3s ease;
+  }
   .progress-label { font-size: 13px; color: var(--text-mute); margin-top: 8px; text-align: center; }
+  /* Overlay blocker during generation */
+  .generating-overlay {
+    position: absolute; inset: 0; z-index: 50;
+    background: rgba(10,10,10,0.55);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+  }
+  .generating-overlay.active { display: flex; }
+  .generating-overlay .gen-spinner {
+    width: 40px; height: 40px;
+    border: 3px solid rgba(255,255,255,0.15); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+  }
+  .generating-overlay .gen-text {
+    font-size: 15px; color: var(--text); font-weight: 500;
+  }
 
   /* ---------- PAINT ---------- */
   #screen-paint { background: var(--canvas-bg); }
@@ -355,29 +522,176 @@
   }
   .paint-header .icon-btn.active .icon-label,
   .prep-header .icon-btn.active .icon-label { color: var(--accent); }
+
+  /* ---------- TUTORIAL / HOW-TO ---------- */
+  .tutorial-backdrop {
+    position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    display: none; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .tutorial-backdrop.active { display: flex; }
+  .tutorial-card {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    max-width: 400px; width: 100%;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .tutorial-visual {
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px 24px;
+    min-height: 180px;
+  }
+  .tutorial-visual .step-icon {
+    width: 80px; height: 80px;
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+    background: var(--accent-soft); color: var(--accent);
+  }
+  .tutorial-visual .step-icon svg { width: 40px; height: 40px; }
+  .tutorial-content {
+    padding: 24px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .tutorial-content .step-counter {
+    font-size: 12px; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .tutorial-content h3 {
+    font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 0;
+  }
+  .tutorial-content p { font-size: 14px; line-height: 1.55; color: var(--text-dim); margin: 0; }
+  .tutorial-dots {
+    display: flex; gap: 6px; justify-content: center; padding: 4px 0;
+  }
+  .tutorial-dots .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--surface-2); transition: background 0.2s;
+  }
+  .tutorial-dots .dot.active { background: var(--accent); }
+  .tutorial-nav {
+    display: flex; gap: 10px; margin-top: 4px;
+  }
+  .tutorial-nav button { flex: 1; }
+  .btn-link {
+    background: none; color: var(--text-dim); padding: 12px;
+    font-size: 15px; text-align: center;
+  }
+  .btn-link:active { color: var(--text); }
+  .howto-btn {
+    background: none; border: none; color: var(--text-mute);
+    font-size: 13px; padding: 8px 16px; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .howto-btn:active { color: var(--text); }
+
+  /* ---------- PRINT OPTIONS MODAL ---------- */
+  .print-options .modal-card {
+    gap: 12px;
+  }
+  .print-options .opt-row {
+    display: flex; gap: 10px;
+  }
+  .print-options .opt-row button { flex: 1; }
+
+  /* ---------- PRINT-FRIENDLY VIEW ---------- */
+  #print-area {
+    display: none; /* hidden until window.print() */
+  }
+  @media print {
+    body * { visibility: hidden !important; }
+    #print-area, #print-area * { visibility: visible !important; }
+    #print-area {
+      display: block !important;
+      position: fixed; inset: 0;
+      background: #fff;
+      z-index: 9999;
+      padding: 10mm;
+    }
+    #print-area canvas {
+      max-width: 100%; max-height: 70vh;
+      display: block; margin: 0 auto;
+    }
+    #print-area .print-legend {
+      margin-top: 12px;
+      display: flex; flex-wrap: wrap; gap: 8px;
+      justify-content: center;
+    }
+    #print-area .print-swatch {
+      display: flex; align-items: center; gap: 4px; font-size: 11px;
+    }
+    #print-area .print-swatch .color-box {
+      width: 16px; height: 16px; border: 1px solid #ccc; border-radius: 3px;
+    }
+  }
 </style>
 </head>
 <body>
+<noscript><p style="padding:2em;color:#fff;text-align:center">This app requires JavaScript to run.</p></noscript>
 
+<main>
 <!-- Screen 1: Start -->
-<section id="screen-start" class="screen active">
+<section id="screen-start" class="screen active" role="region" aria-label="Home">
   <div class="inner">
-    <div class="tag">Paint by Numbers</div>
-    <h1>Your photo.<br>Your template.</h1>
-    <p>Pick a photo. We make the numbers. You paint.</p>
-    <label class="btn-primary">
-      Choose photo
-      <input type="file" id="file-input" accept="image/*" style="display:none">
-    </label>
-    <label class="btn-ghost" style="cursor:pointer">
-      Import backup
-      <input type="file" id="import-input" accept=".json,.pbn,application/json" style="display:none">
-    </label>
-    <div class="resume-list" id="resume-list"></div>
+    <!-- Left side: Hero Content -->
+    <div class="hero-content">
+      <div class="tag" style="background: var(--surface); padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-mute); font-weight: 600; letter-spacing: 0.1em;">100% FREE TOOL</div>
+      <h1 style="margin: 0; line-height: 1.1; font-size: 52px; font-weight: 800; letter-spacing: -0.02em; color: var(--text);">
+        Paint by Numbers.<br>
+        <span style="font-size: 42px; font-weight: 600; color: var(--text-dim);">From your photos.</span>
+      </h1>
+      <p style="margin: 0; font-size: 16px;">Turn any image into a custom template instantly.</p>
+      <p class="subtitle" style="margin: 0;">No subscriptions, no uploads. Everything runs completely offline in your browser for total privacy.</p>
+      
+      <div class="hero-buttons">
+        <label class="btn-primary">
+          Choose photo
+          <input type="file" id="file-input" accept="image/*" style="display:none">
+        </label>
+        <label class="btn-ghost" style="cursor:pointer">
+          Import backup
+          <input type="file" id="import-input" accept=".json,.pbn,application/json" style="display:none">
+        </label>
+      </div>
+
+      <div class="trust-badge">
+        <button id="like-btn" class="like-btn" aria-label="Like this tool">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          <span id="like-count">12.4k</span>
+        </button>
+        <span class="trust-text">Loved by painters</span>
+      </div>
+
+      <div class="bottom-links">
+        <button class="howto-btn" id="howto-btn">How does it work?</button>
+        <a href="https://www.buymeacoffee.com/" target="_blank" rel="noopener" class="donate-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+          Buy me a coffee
+        </a>
+      </div>
+    </div>
+
+    <!-- Right side: Projects -->
+    <div class="hero-projects" id="hero-projects">
+      <div class="title" id="projects-title">Past Projects</div>
+      <div class="resume-list" id="resume-list"></div>
+      <div class="empty-state" id="empty-state" style="display: none;">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="empty-title">No projects yet</div>
+        <div class="empty-sub">Upload a photo to get started with your first painting.</div>
+      </div>
+    </div>
   </div>
 </section>
 
 <!-- Screen 2: Prep -->
+<!-- Generating overlay — blocks interaction during template generation -->
 <section id="screen-prep" class="screen">
   <div class="prep-header">
     <button class="icon-btn" id="prep-back" aria-label="Back">
@@ -398,6 +712,10 @@
       <div class="progress" id="progress"><div class="progress-bar" id="progress-bar"></div></div>
       <div class="progress-label hidden" id="progress-label"></div>
     </div>
+  </div>
+  <div class="generating-overlay" id="generating-overlay">
+    <div class="gen-spinner"></div>
+    <div class="gen-text" id="gen-text">Analyzing colors…</div>
   </div>
 </section>
 
@@ -461,7 +779,44 @@
   </div>
 </div>
 
+<!-- Print options modal -->
+<div class="modal-backdrop print-options" id="print-sheet" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <h3>Print template</h3>
+    <p>Choose how to get your template on paper.</p>
+    <div class="opt-row">
+      <button class="btn-primary" id="print-direct">🖨️ Print</button>
+      <button class="btn-ghost" id="print-pdf">📄 Save PDF</button>
+    </div>
+    <button class="btn-link" id="print-sheet-close">Cancel</button>
+  </div>
+</div>
+
+<!-- Tutorial slideshow -->
+<div class="tutorial-backdrop" id="tutorial" aria-hidden="true">
+  <div class="tutorial-card">
+    <div class="tutorial-visual" id="tutorial-visual"></div>
+    <div class="tutorial-content">
+      <div class="step-counter" id="tutorial-counter"></div>
+      <h3 id="tutorial-title"></h3>
+      <p id="tutorial-text"></p>
+      <div class="tutorial-dots" id="tutorial-dots"></div>
+      <div class="tutorial-nav">
+        <button class="btn-link" id="tutorial-skip">Skip</button>
+        <button class="btn-primary" id="tutorial-next" style="padding:12px 20px;font-size:15px">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden print-area for browser print dialog -->
+<div id="print-area">
+  <canvas id="print-canvas"></canvas>
+  <div class="print-legend" id="print-legend"></div>
+</div>
+
 <div class="toast" id="toast"></div>
+</main>
 
 <script>
 /* =========================================================
@@ -574,6 +929,9 @@ $('#file-input').addEventListener('change', async (e) => {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
   await loadFromFile(file);
+  // Reset so the same file can be re-selected (important on iOS where
+  // the picker may return the same asset and 'change' wouldn't fire).
+  e.target.value = '';
 });
 
 async function loadFromFile(file) {
@@ -602,8 +960,23 @@ async function renderResumeList() {
   const items = await dbAll();
   items.sort((a, b) => b.updatedAt - a.updatedAt);
   const wrap = $('#resume-list');
+  const heroProjects = $('#hero-projects');
+  const emptyState = $('#empty-state');
+  const projectsTitle = $('#projects-title');
+  
+  if (!items.length) {
+    if (wrap) wrap.style.display = 'none';
+    if (emptyState) emptyState.style.display = 'flex';
+    if (projectsTitle) projectsTitle.style.display = 'none';
+    wrap.innerHTML = '';
+    return;
+  }
+  
+  if (wrap) wrap.style.display = '';
+  if (emptyState) emptyState.style.display = 'none';
+  if (projectsTitle) projectsTitle.style.display = 'block';
   wrap.innerHTML = '';
-  if (!items.length) return;
+  
   for (const it of items.slice(0, 6)) {
     const row = document.createElement('div');
     row.className = 'resume-item';
@@ -612,8 +985,7 @@ async function renderResumeList() {
     const meta = document.createElement('div');
     meta.className = 'meta';
     const ago = formatAgo(Date.now() - it.updatedAt);
-    // Build with textContent rather than innerHTML so a manipulated backup
-    // file (it.name = '<img onerror=...>') cannot inject HTML/script.
+    // Card layout: image on top, meta below, action buttons at the bottom
     const nameEl = document.createElement('div');
     nameEl.className = 'name';
     nameEl.textContent = it.name || 'Project';
@@ -622,19 +994,47 @@ async function renderResumeList() {
     whenEl.textContent = ago;
     meta.appendChild(nameEl);
     meta.appendChild(whenEl);
+    
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+    
     const open = document.createElement('button');
     open.className = 'btn-ghost';
-    open.style.padding = '8px 14px'; open.style.fontSize = '13px';
     open.textContent = 'Open';
     open.addEventListener('click', () => resumeProject(it.id));
+    
     const del = document.createElement('button');
     del.className = 'del';
-    del.innerHTML = '✕';
-    del.addEventListener('click', async (e) => { e.stopPropagation(); await dbDel(it.id); renderResumeList(); });
+    del.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+    
+    let delState = 0;
+    del.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (delState === 0) {
+        delState = 1;
+        del.innerHTML = 'Sure?';
+        del.style.color = '#ff4d4d';
+        del.style.background = 'rgba(255,50,50,0.1)';
+        del.style.flex = '1';
+        setTimeout(() => {
+          if (delState === 1) {
+            delState = 0;
+            del.style = '';
+            del.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+          }
+        }, 3000);
+      } else {
+        await dbDel(it.id);
+        renderResumeList();
+      }
+    });
+    
+    actions.appendChild(open);
+    actions.appendChild(del);
+    
     row.appendChild(img);
     row.appendChild(meta);
-    row.appendChild(open);
-    row.appendChild(del);
+    row.appendChild(actions);
     wrap.appendChild(row);
   }
 }
@@ -708,17 +1108,42 @@ function updatePresetSummary() {
   if (out) out.textContent = `${p.label} · ${p.k} colors`;
 }
 
-$('#prep-back').addEventListener('click', () => go('start'));
+let _isGenerating = false;
+$('#prep-back').addEventListener('click', () => {
+  if (_isGenerating) return; // block back during generation
+  go('start');
+});
 
 $('#generate-btn').addEventListener('click', async () => {
+  if (_isGenerating) return; // prevent double-tap
+  _isGenerating = true;
+  const btn = $('#generate-btn');
+  const overlay = $('#generating-overlay');
+  const genText = $('#gen-text');
   const preset = PRESETS.find((p) => p.id === state.preset) || PRESETS[2];
-  $('#generate-btn').disabled = true;
+
+  // --- lock UI ---
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Generating…';
+  overlay.classList.add('active');
+  genText.textContent = 'Analyzing colors…';
   $('#progress').classList.add('active');
   $('#progress-label').classList.remove('hidden');
-  await generateTemplate(preset.k, preset.minPxFactor);
-  $('#generate-btn').disabled = false;
-  $('#progress').classList.remove('active');
-  $('#progress-label').classList.add('hidden');
+
+  try {
+    await generateTemplate(preset.k, preset.minPxFactor);
+  } catch (err) {
+    console.error('generateTemplate error', err);
+    toast('Generation failed — try again', 3000);
+  } finally {
+    // --- unlock UI ---
+    _isGenerating = false;
+    btn.disabled = false;
+    btn.innerHTML = 'Generate template';
+    overlay.classList.remove('active');
+    $('#progress').classList.remove('active');
+    $('#progress-label').classList.add('hidden');
+  }
 });
 
 // ---------- Worker (inline) ----------
@@ -1050,21 +1475,30 @@ async function generateTemplate(k, minPxFactor) {
 
   await new Promise((resolve, reject) => {
     const wk = new Worker(workerURL);
+    // Timeout: if worker hangs (e.g. memory pressure on iPhone), kill it after 90s
+    const timeout = setTimeout(() => {
+      wk.terminate();
+      reject(new Error('Template generation timed out'));
+    }, 90000);
     wk.onmessage = (e) => {
       const { type, payload } = e.data;
       if (type === 'progress') {
         $('#progress-bar').style.width = (payload.p * 100) + '%';
         $('#progress-label').textContent = payload.stage;
+        // Update the overlay text so the user sees what's happening
+        const genText = $('#gen-text');
+        if (genText) genText.textContent = payload.stage + '\u2026';
       } else if (type === 'done') {
+        clearTimeout(timeout);
         finishTemplate(payload).then(resolve).catch(reject);
         wk.terminate();
       } else if (type === 'error') {
-        toast('Error: ' + payload.message);
+        clearTimeout(timeout);
         reject(new Error(payload.message));
         wk.terminate();
       }
     };
-    wk.onerror = (err) => { toast('Worker error'); reject(err); };
+    wk.onerror = (err) => { clearTimeout(timeout); reject(err); };
     wk.postMessage({ imageData, k, minPxFactor }, [imageData.data.buffer]);
   });
 }
@@ -1470,7 +1904,48 @@ $('#paint-back').addEventListener('click', async () => {
 });
 // ---------- Backup / Import / Print ----------
 $('#backup-btn').addEventListener('click', backupProject);
-$('#print-btn').addEventListener('click', exportPDF);
+$('#print-btn').addEventListener('click', () => {
+  if (!state.projectId) { toast('Nothing to print'); return; }
+  $('#print-sheet').classList.add('active');
+  $('#print-sheet').setAttribute('aria-hidden', 'false');
+});
+
+$('#print-sheet-close').addEventListener('click', () => {
+  $('#print-sheet').classList.remove('active');
+  $('#print-sheet').setAttribute('aria-hidden', 'true');
+});
+
+$('#print-pdf').addEventListener('click', () => {
+  $('#print-sheet').classList.remove('active');
+  $('#print-sheet').setAttribute('aria-hidden', 'true');
+  exportPDF();
+});
+
+$('#print-direct').addEventListener('click', () => {
+  $('#print-sheet').classList.remove('active');
+  $('#print-sheet').setAttribute('aria-hidden', 'true');
+  if (!state.templateBitmap) { toast('Template not ready yet'); return; }
+  
+  // Prepare the hidden print area
+  const printCanvas = $('#print-canvas');
+  const tplCanvas = templateCanvasFromState();
+  printCanvas.width = tplCanvas.width;
+  printCanvas.height = tplCanvas.height;
+  const ctx = printCanvas.getContext('2d');
+  ctx.drawImage(tplCanvas, 0, 0);
+  
+  const legend = $('#print-legend');
+  legend.innerHTML = '';
+  state.palette.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'print-swatch';
+    el.innerHTML = `<div class="color-box" style="background: rgb(${p.r},${p.g},${p.b})"></div><span>${p.nr}</span>`;
+    legend.appendChild(el);
+  });
+
+  // Small delay to ensure the DOM is updated before printing
+  setTimeout(() => window.print(), 100);
+});
 $('#import-input').addEventListener('change', async (e) => {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
@@ -1522,13 +1997,48 @@ function templateCanvasFromState() {
   return c;
 }
 
-// Open the fallback sheet. Its buttons fire as fresh user gestures, which
-// iOS needs for either share() or window.open() to work in standalone mode.
+/* ------------------------------------------------------------------
+   Universal save helper — picks the best strategy per platform:
+   1. navigator.share()  → iPad / iOS / Android (inside user gesture)
+   2. <a download> click → Desktop Mac/Windows/Linux (always works)
+   3. Fallback modal     → if both above fail
+   ------------------------------------------------------------------ */
+function triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.rel = 'noopener';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  // Defer cleanup so the browser has time to start the download
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 2000);
+}
+
+function smartSave({ file, blob, filename, title }) {
+  // 1) Try native share (works on iPad / iOS / Android in user gesture)
+  const canShare = !!(navigator.canShare && file && navigator.canShare({ files: [file] }));
+  if (canShare) {
+    navigator.share({ files: [file], title: title || filename })
+      .then(() => toast('Saved'))
+      .catch((err) => {
+        if (err && err.name === 'AbortError') return; // user cancelled
+        // Share was rejected — fall back to direct download
+        triggerDownload(blob, filename);
+        toast('Saved to Downloads');
+      });
+    return;
+  }
+  // 2) Direct download — works on Mac/Windows/Linux desktop browsers
+  triggerDownload(blob, filename);
+  toast('Saved to Downloads');
+}
+
+// Fallback modal — only used for edge cases (e.g. PDF on iOS-PWA where
+// the async build loses the gesture token).
 let _saveSheetCleanup = null;
 function openSaveSheet({ file, blob, filename, title, body }) {
-  // If the sheet is re-opened before the previous instance was dismissed
-  // (e.g. share rejects after an earlier open) tear down its listeners first,
-  // otherwise they would leak forever.
   if (_saveSheetCleanup) { _saveSheetCleanup(); _saveSheetCleanup = null; }
 
   const sheet = $('#save-sheet');
@@ -1541,45 +2051,35 @@ function openSaveSheet({ file, blob, filename, title, body }) {
   titleEl.textContent = title || 'Save';
   bodyEl.textContent = body || 'Tap an option below.';
 
-  // Object URL is created lazily and revoked on close.
   let url = null;
   function ensureURL() { if (!url) url = URL.createObjectURL(blob); return url; }
   function close() {
     sheet.classList.remove('active');
     sheet.setAttribute('aria-hidden', 'true');
     if (_saveSheetCleanup) { _saveSheetCleanup(); _saveSheetCleanup = null; }
-    // Defer the revoke so a just-clicked <a download> fallback has time to fetch
-    // the blob before its URL disappears.
-    if (url) {
-      const u = url;
-      url = null;
-      setTimeout(() => URL.revokeObjectURL(u), 2000);
-    }
+    if (url) { const u = url; url = null; setTimeout(() => URL.revokeObjectURL(u), 2000); }
   }
 
-  // Hide the share button if Web Share with files is not available at all
-  // (e.g. desktop Chrome without the experimental flag).
   const canShare = !!(navigator.canShare && file && navigator.canShare({ files: [file] }));
   shareBtn.style.display = canShare ? '' : 'none';
+  // Rename "Open in new tab" to "Download" for clarity
+  openBtn.textContent = 'Download';
 
   const onShare = () => {
     if (!canShare) { close(); return; }
     navigator.share({ files: [file], title: title || filename })
       .then(() => { toast('Saved'); close(); })
       .catch((err) => {
-        if (err && err.name === 'AbortError') return; // user cancelled — leave sheet open
-        bodyEl.textContent = 'Sharing was blocked. Use "Open in new tab" and then save from there.';
+        if (err && err.name === 'AbortError') return;
+        // Last resort: direct download from the modal button (fresh gesture)
+        triggerDownload(blob, filename);
+        toast('Saved to Downloads');
+        close();
       });
   };
   const onOpen = () => {
-    // window.open from a click handler counts as a user gesture, even in PWA standalone.
-    // Falls back to a download-link click for desktop browsers.
-    const w = window.open(ensureURL(), '_blank');
-    if (!w) {
-      const a = document.createElement('a');
-      a.href = ensureURL(); a.download = filename; a.rel = 'noopener';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    }
+    triggerDownload(blob, filename);
+    toast('Saved to Downloads');
     close();
   };
   const onClose = () => close();
@@ -1601,9 +2101,7 @@ function backupProject() {
   if (!state.projectId) { toast('Nothing to back up'); return; }
   if (!state.templateBitmap) { toast('Template not ready yet'); return; }
 
-  // --- Everything from here to navigator.share() MUST be synchronous. ---
-  // Pull the freshest paint + template straight from the canvases, not from
-  // IndexedDB, so we don't need to await flushSave() and lose the gesture.
+  // --- Everything synchronous to preserve the user gesture for share(). ---
   const paintDataURL = $('#canvas-paint').toDataURL('image/png');
   const templateDataURL = templateCanvasFromState().toDataURL('image/png');
 
@@ -1627,26 +2125,11 @@ function backupProject() {
   const filename = `${safe}.pbn.json`;
   const file = new File([blob], filename, { type: 'application/json' });
 
-  // Persist to IndexedDB in the background — does NOT block the share call.
+  // Persist to IndexedDB in the background — does NOT block the save.
   flushSave().catch(() => {});
 
-  // First try: native share inside the current user gesture.
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    navigator.share({ files: [file], title: state.projectName || 'Project backup' })
-      .then(() => toast('Backup shared'))
-      .catch((err) => {
-        if (err && err.name === 'AbortError') return; // user dismissed — fine
-        openSaveSheet({ file, blob, filename,
-          title: 'Save backup',
-          body: 'Sharing was blocked. Pick another way to save your backup.' });
-      });
-    return;
-  }
-
-  // No Web Share at all → straight to the fallback sheet.
-  openSaveSheet({ file, blob, filename,
-    title: 'Save backup',
-    body: 'Pick how to save the project file.' });
+  // smartSave: share on mobile, direct download on desktop
+  smartSave({ file, blob, filename, title: state.projectName || 'Project backup' });
 }
 
 /* ------------------------------------------------------------------
@@ -1810,11 +2293,18 @@ async function exportPDF() {
     const file = new File([blob], filename, { type: 'application/pdf' });
 
     toast('PDF ready');
-    openSaveSheet({
-      file, blob, filename,
-      title: 'Save PDF',
-      body: 'Pick how to save the print-ready PDF.'
-    });
+    // PDF build is async so we lost the original gesture — on iOS-PWA we
+    // need the modal (its buttons are fresh gestures). On desktop, direct
+    // download works fine.
+    const canShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
+    if (canShare) {
+      // Mobile: show modal so its buttons are fresh gestures
+      openSaveSheet({ file, blob, filename, title: 'Save PDF', body: 'Tap to save your print-ready PDF.' });
+    } else {
+      // Desktop: just download
+      triggerDownload(blob, filename);
+      toast('PDF saved to Downloads');
+    }
   } catch (err) {
     console.error(err);
     toast('PDF failed: ' + (err.message || err), 3000);
@@ -1853,9 +2343,7 @@ async function dataURLToBlob(dataURL) {
 }
 
 $('#save-btn').addEventListener('click', () => {
-  // Build the merged image fully synchronously and reuse the same
-  // share-or-fallback path as the backup button. Without this, iOS-PWA users
-  // tap Save and nothing happens (toBlob's async callback + <a download>).
+  // Build the merged image synchronously to preserve the user gesture.
   const out = document.createElement('canvas');
   out.width = state.width; out.height = state.height;
   const c = out.getContext('2d');
@@ -1865,30 +2353,141 @@ $('#save-btn').addEventListener('click', () => {
     c.drawImage($('#canvas-template'), 0, 0);
     c.globalCompositeOperation = 'source-over';
   }
-  const dataURL = out.toDataURL('image/png');           // sync
-  const blob = dataURLToBlobSync(dataURL);              // sync
+  const dataURL = out.toDataURL('image/png');
+  const blob = dataURLToBlobSync(dataURL);
   const filename = 'painting-' + Date.now() + '.png';
   const file = new File([blob], filename, { type: 'image/png' });
 
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    navigator.share({ files: [file], title: state.projectName || 'Painting' })
-      .then(() => toast('Image shared'))
-      .catch((err) => {
-        if (err && err.name === 'AbortError') return;
-        openSaveSheet({ file, blob, filename,
-          title: 'Save image',
-          body: 'Sharing was blocked. Pick another way to save the image.' });
-      });
-    return;
-  }
-  openSaveSheet({ file, blob, filename,
-    title: 'Save image',
-    body: 'Pick how to save the image.' });
+  // smartSave: share on mobile, direct download on desktop
+  smartSave({ file, blob, filename, title: state.projectName || 'Painting' });
 });
 
 window.addEventListener('resize', () => {
   if (screens.paint.classList.contains('active')) fitCanvas();
 });
+
+// ---------- Tutorial Slideshow ----------
+const tutorialSteps = [
+  {
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+    title: '1. Upload your photo',
+    text: 'Choose any photo from your device. Everything runs locally in your browser — your photos are never uploaded to any server.'
+  },
+  {
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/></svg>',
+    title: '2. Generate template',
+    text: 'Pick a detail level. We analyze the colors and automatically convert your photo into a paint-by-numbers template.'
+  },
+  {
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.06 11.9l8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04 0-1.67-1.34-3.02-3-3.02z"/></svg>',
+    title: '3. Paint it',
+    text: 'Use the interactive canvas to paint digitally, or print it out to paint on real paper with real colors.'
+  },
+  {
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>',
+    title: '4. Save and resume',
+    text: 'Save your progress as a backup file. You can import it later on any device to continue painting where you left off.'
+  }
+];
+
+let currentTutorialStep = 0;
+const tutBackdrop = $('#tutorial');
+
+function showTutorialStep(index) {
+  currentTutorialStep = index;
+  const step = tutorialSteps[index];
+  
+  $('#tutorial-visual').innerHTML = `<div class="step-icon">${step.icon}</div>`;
+  $('#tutorial-counter').textContent = `Step ${index + 1} of ${tutorialSteps.length}`;
+  $('#tutorial-title').textContent = step.title;
+  $('#tutorial-text').textContent = step.text;
+  
+  const dots = $('#tutorial-dots');
+  dots.innerHTML = '';
+  tutorialSteps.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === index ? ' active' : '');
+    dots.appendChild(dot);
+  });
+  
+  $('#tutorial-next').textContent = index === tutorialSteps.length - 1 ? 'Get Started' : 'Next';
+}
+
+$('#howto-btn').addEventListener('click', () => {
+  tutBackdrop.classList.add('active');
+  tutBackdrop.setAttribute('aria-hidden', 'false');
+  showTutorialStep(0);
+});
+
+$('#tutorial-skip').addEventListener('click', () => {
+  tutBackdrop.classList.remove('active');
+  tutBackdrop.setAttribute('aria-hidden', 'true');
+});
+
+$('#tutorial-next').addEventListener('click', () => {
+  if (currentTutorialStep < tutorialSteps.length - 1) {
+    showTutorialStep(currentTutorialStep + 1);
+  } else {
+    tutBackdrop.classList.remove('active');
+    tutBackdrop.setAttribute('aria-hidden', 'true');
+  }
+});
+
+// ---------- Like Button ----------
+let likes = 12431;
+let hasLiked = localStorage.getItem('hasLiked') === 'true';
+
+function formatLikes(num) {
+  return num > 999 ? (num / 1000).toFixed(1) + 'k' : num;
+}
+
+const likeBtn = $('#like-btn');
+const likeCount = $('#like-count');
+if (likeBtn && likeCount) {
+  if (hasLiked) {
+    likes++;
+    likeBtn.classList.add('liked');
+  }
+  likeCount.textContent = formatLikes(likes);
+
+  likeBtn.addEventListener('click', () => {
+    if (hasLiked) {
+      hasLiked = false;
+      likes--;
+      likeBtn.classList.remove('liked');
+      localStorage.setItem('hasLiked', 'false');
+    } else {
+      hasLiked = true;
+      likes++;
+      likeBtn.classList.add('liked');
+      localStorage.setItem('hasLiked', 'true');
+      
+      // Floating hearts effect
+      for(let i=0; i<3; i++) {
+        setTimeout(() => {
+          const heart = document.createElement('div');
+          heart.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="var(--accent)" stroke="var(--accent)" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>';
+          heart.style.position = 'absolute';
+          const rect = likeBtn.getBoundingClientRect();
+          heart.style.left = (rect.left + rect.width / 2 - 10 + (Math.random()*20-10)) + 'px';
+          heart.style.top = (rect.top - 10) + 'px';
+          heart.style.pointerEvents = 'none';
+          heart.style.zIndex = '9999';
+          heart.style.transition = 'all 1s ease-out';
+          document.body.appendChild(heart);
+          
+          requestAnimationFrame(() => {
+            heart.style.transform = `translateY(-50px) scale(1.5) rotate(${Math.random()*20-10}deg)`;
+            heart.style.opacity = '0';
+          });
+          
+          setTimeout(() => document.body.removeChild(heart), 1000);
+        }, i * 150);
+      }
+    }
+    likeCount.textContent = formatLikes(likes);
+  });
+}
 
 // Init
 renderPresetPills();

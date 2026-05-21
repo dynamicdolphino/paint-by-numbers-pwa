@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://dynamicdolphino.github.io/paint-by-numbers-pwa/sitemap.xml

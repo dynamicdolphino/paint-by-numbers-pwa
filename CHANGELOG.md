@@ -6,6 +6,31 @@ Neueste Einträge **oben**.
 
 ---
 
+## [0.9.0] — 2026-05-21 — SEO + Discoverability + UX-Polish (Antigravity-Rework)
+
+### Added
+- **SEO komplett**: Vollständiger Meta-Tag-Block (description, keywords, theme-color, author), OpenGraph (og:type/title/description/url/site_name), Twitter Card (summary_large_image), `<link rel="canonical">`
+- `robots.txt` — erlaubt Indexierung + verweist auf Sitemap
+- `sitemap.xml` — eine URL (Startseite), priority 1.0, changefreq monthly
+- **Tutorial-Modal** (`#tutorial`) — neue „How does it work?"-Erklärung für Erst-User
+- **Print-Optionen-Modal** (`#print-sheet`) — User wählt zwischen direktem Print und PDF-Save (zuvor war PDF die einzige Option)
+- **Like-Button** im Header mit Counter (`#like-btn` / `#like-count`)
+- **Hero-„Past Projects"-Sektion** mit Empty-State auf dem Start-Screen
+- **Generating-Overlay** (`#generating-overlay`) mit Statustext „Analyzing colors…" während Worker läuft
+- A11y: `role="region"`, `aria-label`, `aria-hidden` auf Screens und Modals
+
+### Changed
+- `manifest.webmanifest` — Name erweitert auf „Paint by Numbers — Custom Templates from Photos", längere SEO-Description, neues Feld `categories: ["creativity", "design", "entertainment"]`
+- `sw.js` — Cache `pbn-v10`; `FILES`-Liste um `robots.txt` und `sitemap.xml` ergänzt
+- `index.html` von 1905 auf 2504 Zeilen gewachsen (+31%) — gesamtes SEO/A11y/UX-Polish
+
+### Decisions
+- **Antigravity-Rework als Drop-in-Merge** — `MEMORY.md`, `BACKLOG.md`, `SPEC.md`, `brief.md`, `README.md` sind unverändert geblieben, weil die v2-Arbeit reiner Code/Markup/SEO-Layer war, ohne Architektur-Bruch
+- **Direkt auf `main` über Branch `v0.9.0-antigravity-merge`** — Solo-Repo, kein PR-Review nötig, Branch dient nur der Diff-Sichtbarkeit in der Historie
+- **Like-Counter steht aktuell auf statischem Wert (12.4k)** — bewusst, weil Backend-Integration jenseits PWA-Scope wäre; Decoration bleibt bis Telemetry/Analytics-Anbindung entschieden ist
+
+---
+
 ## [0.8.0] — 2026-05-18 — Druck-PDF der Vorlage
 
 ### Added
