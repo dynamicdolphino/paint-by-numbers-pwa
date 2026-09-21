@@ -43,7 +43,7 @@ flowchart TD
 
 ## Sample Output
 
-Screenshots from the running app (synthetic test image, iPad landscape viewport):
+Screenshots from the running app (the bundled example photo, iPad landscape viewport):
 
 | Landing page with live example | Setup: five detail presets |
 |---|---|
@@ -90,6 +90,7 @@ paint-by-numbers-pwa/
 ├── icon-192.png / icon-512.png # app icons
 ├── og-image.png                # social preview
 ├── example.jpg / example-after.jpg  # landing-page example (photo + template)
+├── step-2.jpg / step-3.jpg     # how-it-works pictures (template, painted)
 ├── feat-levels.jpg / feat-paint.jpg / feat-print.jpg  # landing-page feature pictures
 ├── robots.txt / sitemap.xml
 ├── tests/
@@ -126,7 +127,7 @@ middle mouse button or Space + drag pans as well.
 
 ## Status & Open Items
 
-Version 0.12.0 (light + dark theme). All findings of the 2026-09-21 review are implemented and the start screen is a landing page with a live example; the Buy-me-a-coffee URL is still a placeholder (backlog L-01); palm rejection and
+Version 0.13.0 (light + dark theme, real example photo — its license is still to be confirmed, backlog L-05). All findings of the 2026-09-21 review are implemented and the start screen is a landing page with a live example; the Buy-me-a-coffee URL is still a placeholder (backlog L-01); palm rejection and
 focal-point pinch zoom are verified with synthetic pointer events only and still need a pass
 on a real iPad with a Pencil (see [BACKLOG.md](BACKLOG.md)).
 

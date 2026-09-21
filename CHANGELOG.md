@@ -6,6 +6,17 @@ Newest entries **on top**.
 
 ---
 
+## [0.13.0] — 2026-09-21 — Real photo as the example, pictures in the steps
+
+### Changed
+- The example is now a real photo supplied by the owner (sleeping tabby cat, `example.jpg`, 1200×900) instead of the procedural sunset. Everything derived from it is regenerated through the real pipeline: before/after slider (`example-after.jpg`, Standard level, 24 colors), feature pictures (levels, paint screen, PDF pages) and the README screenshots.
+- "How it works" cards and the step-by-step tutorial show pictures of the three stages: photo → template (`step-2.jpg`) → painted (`step-3.jpg`).
+- "Try the example" selects the Standard level. Compare frame and images are 4:3.
+- Asset scripts unregister the service worker first (it serves assets cache-first and handed out the previous example). `tests/feature-assets.py` also converts the example-derived pictures.
+- `sw.js` — cache `pbn-v15`, step pictures precached.
+
+---
+
 ## [0.12.0] — 2026-09-21 — Light theme, feature showcase with screenshots, visible import
 
 ### Added
