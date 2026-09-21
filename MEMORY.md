@@ -225,3 +225,15 @@ Fix: the backup payload is now built **entirely synchronously** from `state.*` (
 
 **Impact:** Generating the example exposed a numbering bug (fields joined by a 1 px neck shared one number) — numbering now labels the areas enclosed by the outline mask (`OUTLINE` pseudo color in the worker). Example images are regenerated with `tests/example-assets.playwright.js` whenever the pipeline changes visibly. Every new static file must be added to `FILES` in `sw.js`; a unit test now checks that all of them exist.
 
+---
+
+## 2026-09-21 — Light theme and picture-led feature section
+
+**Context:** Feedback on the 0.11.0 landing page: most people use light mode, the features should be shown as screenshots (e.g. the printable template), the import-backup entry had become a hidden text link, and the how-it-works explanation sat too far down.
+
+**Decision / Insight:** All chrome colors became tokens with a second, white set under `:root[data-theme="light"]`; the theme follows the system unless the user toggles it. Feature pictures are produced from the running app (templates at two levels, paint screen, the real PDF rasterised with `qlmanage`), not mocked. Steps moved under the hero, import became a dashed pill button next to the primary actions.
+
+**Rationale:** Real output is more convincing than icons and keeps the page honest. A dashed outline marks import as a secondary, file-based action without competing with "Choose photo".
+
+**Impact:** New hard-coded colors in CSS break the light theme — use the tokens. After visible pipeline or UI changes rerun `tests/example-assets.playwright.js`, `tests/feature-assets.playwright.js` + `tests/feature-assets.py` and `tests/screenshots.playwright.js`.
+

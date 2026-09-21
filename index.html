@@ -43,6 +43,15 @@
   "featureList": ["Photo to paint-by-numbers conversion", "Apple Pencil support", "Offline capable", "PDF export", "Project backup"]
 }
 </script>
+<script>
+// Theme before first paint: stored choice wins, otherwise the system setting.
+(function () {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (_) {}
+  if (t !== 'light' && t !== 'dark') t = window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  document.documentElement.dataset.theme = t;
+})();
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -57,13 +66,45 @@
     --text-dim: rgba(245,241,236,0.65);
     --text-mute: rgba(245,241,236,0.45);
     --accent: #E8651A;
+    --accent-text: #F0762E;        /* accent used as text: needs 4.5:1 on --bg */
+    --cta: #C9520E;                /* button fill: white label reaches 4.5:1 */
+    --cta-hover: #DB5D14;
     --accent-soft: rgba(232,101,26,0.18);
+    --header-bg: rgba(10,10,10,0.7);
+    --header-bg-strong: rgba(10,10,10,0.85);
+    --palette-bg: rgba(10,10,10,0.92);
+    --overlay-bg: rgba(10,10,10,0.55);
+    --stage-bg: #1b1917;
+    --card-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    --hero-glow: rgba(232,101,26,0.12);
+    color-scheme: dark;
     --brown: #3D2B1A;
     --canvas-bg: #EEEEEE;
     --serif: ui-serif, "New York", "Times New Roman", Georgia, serif;
     --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
     --radius: 14px;
     --radius-lg: 20px;
+  }
+  /* Light theme: set by the inline script in <head> (stored choice, else the system setting). */
+  :root[data-theme="light"] {
+    --bg: #FFFFFF;
+    --bg-soft: #FFFFFF;
+    --surface: #F6F5F2;
+    --surface-2: #ECEAE5;
+    --border: rgba(28,24,21,0.13);
+    --text: #1C1815;
+    --text-dim: rgba(28,24,21,0.76);
+    --text-mute: rgba(28,24,21,0.62);
+    --accent-text: #B5470A;
+    --accent-soft: rgba(232,101,26,0.13);
+    --header-bg: rgba(255,255,255,0.82);
+    --header-bg-strong: rgba(255,255,255,0.94);
+    --palette-bg: rgba(255,255,255,0.97);
+    --overlay-bg: rgba(255,255,255,0.72);
+    --stage-bg: #E7E5E0;
+    --card-shadow: 0 18px 50px rgba(28,24,21,0.16);
+    --hero-glow: rgba(232,101,26,0.10);
+    color-scheme: light;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
@@ -124,7 +165,7 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     background:
-      radial-gradient(60% 420px at 50% 0%, rgba(232,101,26,0.12), transparent 70%),
+      radial-gradient(60% 420px at 50% 0%, var(--hero-glow), transparent 70%),
       var(--bg);
   }
   .landing { width: 100%; max-width: 1120px; padding: 0 20px 48px; display: flex; flex-direction: column; gap: 56px; animation: fadeSlideIn 0.5s ease both; }
@@ -142,10 +183,13 @@
   .pill-btn:active { transform: scale(0.97); }
   .pill-btn svg { width: 16px; height: 16px; flex: none; }
   .like-btn svg { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-  .like-btn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent-soft); background: var(--accent-soft); }
+  .like-btn[aria-pressed="true"] { color: var(--accent-text); border-color: var(--accent-soft); background: var(--accent-soft); }
   .like-btn[aria-pressed="true"] svg { fill: currentColor; transform: scale(1.15); }
   .like-btn .count { font-variant-numeric: tabular-nums; }
   .coffee-btn { color: var(--text); }
+  .theme-btn { padding: 0; width: 44px; justify-content: center; }
+  .theme-btn .moon, :root[data-theme="light"] .theme-btn .sun { display: none; }
+  :root[data-theme="light"] .theme-btn .moon { display: block; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .hero { display: grid; gap: 32px; align-items: center; }
@@ -155,17 +199,17 @@
     background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px;
   }
   .hero h1 { font-size: clamp(38px, 6vw, 60px); line-height: 1.05; text-wrap: balance; }
-  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero h1 em { font-style: normal; color: var(--accent-text); }
   .hero .lead { font-size: 17px; color: var(--text-dim); max-width: 46ch; }
   .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
   .hero-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: center; font-size: 13px; color: var(--text-mute); }
   .hero-meta span { display: inline-flex; align-items: center; gap: 6px; }
-  .hero-meta svg { width: 14px; height: 14px; color: var(--accent); }
+  .hero-meta svg { width: 14px; height: 14px; color: var(--accent-text); }
   .text-link { color: var(--text-dim); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; }
   .text-link:hover { color: var(--text); }
 
   .btn-primary {
-    background: var(--accent);
+    background: var(--cta);
     color: #fff;
     padding: 16px 28px;
     border-radius: 999px;
@@ -174,8 +218,8 @@
     cursor: pointer;
     transition: transform 0.15s ease, background 0.15s ease;
   }
-  .btn-primary:hover { background: #f0742a; }
-  .btn-primary:active { transform: scale(0.97); background: #d65a14; }
+  .btn-primary:hover { background: var(--cta-hover); }
+  .btn-primary:active { transform: scale(0.97); background: var(--cta); }
   .btn-primary:disabled, .btn-primary.loading {
     opacity: 0.6; pointer-events: none; cursor: not-allowed;
   }
@@ -202,7 +246,7 @@
   .compare { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
   .compare-frame {
     position: relative; aspect-ratio: 3 / 2; border-radius: var(--radius-lg); overflow: hidden;
-    border: 1px solid var(--border); background: #111; box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    border: 1px solid var(--border); background: #111; box-shadow: var(--card-shadow);
     --pos: 38%;
   }
   .compare-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -228,32 +272,61 @@
   .section-head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
   .section-head h2 { font-size: clamp(24px, 3vw, 30px); margin: 0; }
   .section-head p { font-size: 15px; }
-  .kicker { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .kicker { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-text); }
 
   .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
   .feature {
     display: flex; flex-direction: column; gap: 8px; padding: 20px; text-align: left;
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
   }
-  .feature .ico { width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
+  .feature .ico { width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); color: var(--accent-text); display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
   .feature .ico svg { width: 20px; height: 20px; }
   .feature h3 { margin: 0; font-size: 16px; font-weight: 600; font-family: var(--sans); }
   .feature p { font-size: 14px; line-height: 1.5; }
 
-  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; counter-reset: step; list-style: none; margin: 0; padding: 0; }
-  .steps li { counter-increment: step; position: relative; padding: 18px 18px 18px 64px; border-radius: var(--radius-lg); border: 1px solid var(--border); text-align: left; }
-  .steps li::before {
-    content: counter(step); position: absolute; left: 18px; top: 18px; width: 32px; height: 32px; border-radius: 50%;
-    border: 1.5px solid var(--accent); color: var(--accent); font-family: var(--serif); font-size: 17px;
-    display: flex; align-items: center; justify-content: center;
+  /* Steps: a real sequence — the markers are numbered paint pots in colors of the example palette. */
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; list-style: none; margin: 0; padding: 0; }
+  .steps li {
+    display: flex; gap: 16px; align-items: flex-start; text-align: left; padding: 22px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
   }
-  .steps strong { display: block; font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
-  .steps span { font-size: 14px; color: var(--text-dim); }
+  .pot {
+    flex: none; width: 52px; height: 52px; border-radius: 50%; background: var(--pot); color: var(--pot-ink);
+    font-family: var(--serif); font-size: 24px; display: flex; align-items: center; justify-content: center;
+    box-shadow: inset 0 -6px 0 rgba(0,0,0,0.16), 0 0 0 4px var(--bg), 0 0 0 5px var(--border);
+  }
+  .steps strong { display: block; font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .steps li span:not(.pot) { font-size: 15px; line-height: 1.5; color: var(--text-dim); }
+  .how-more { margin-top: 10px; text-align: center; }
+
+  .import-btn {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; margin-top: -6px;
+    border-radius: 999px; border: 1px dashed var(--border); color: var(--text-dim); font-size: 14px; cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .import-btn:hover { background: var(--surface); color: var(--text); }
+  .import-btn:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .import-btn svg { width: 16px; height: 16px; }
+
+  .showcase { display: flex; flex-direction: column; gap: 28px; margin-bottom: 28px; }
+  .show-row { display: grid; gap: 18px; align-items: center; }
+  .show-row img {
+    width: 100%; height: auto; display: block; border-radius: var(--radius-lg);
+    border: 1px solid var(--border); box-shadow: var(--card-shadow); background: var(--surface-2);
+  }
+  .show-copy { text-align: left; }
+  .show-copy h3 { font-family: var(--serif); font-weight: 500; font-size: clamp(22px, 2.6vw, 28px); line-height: 1.15; margin: 0 0 10px; }
+  .show-copy p { font-size: 16px; line-height: 1.6; max-width: 46ch; }
+  @media (min-width: 900px) {
+    .showcase { gap: 56px; margin-bottom: 56px; }
+    .show-row { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 48px; }
+    .show-row.flip img { order: 2; }
+  }
 
   .support {
     display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; justify-content: space-between; text-align: left;
     padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--accent-soft);
-    background: linear-gradient(135deg, rgba(232,101,26,0.12), rgba(61,43,26,0.35));
+    background: linear-gradient(135deg, var(--accent-soft), var(--surface));
   }
   .support h2 { font-size: 22px; margin: 0 0 4px; }
   .support p { font-size: 14px; max-width: 52ch; }
@@ -271,13 +344,13 @@
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
     padding: 12px; text-align: left;
   }
-  .resume-item img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; background: #222; }
+  .resume-item img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; background: var(--surface-2); }
   .resume-item .meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .resume-item .meta .name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .resume-item .meta .when { font-size: 12px; color: var(--text-mute); }
   .resume-item .actions { display: flex; gap: 8px; margin-top: auto; }
   .resume-item .actions button { flex: 1; min-height: 44px; padding: 0; font-size: 14px; }
-  .resume-item .del { flex: 0 0 44px !important; color: var(--text-dim); background: rgba(255,255,255,0.05); border: none; border-radius: 12px; cursor: pointer; }
+  .resume-item .del { flex: 0 0 44px !important; color: var(--text-dim); background: var(--surface-2); border: none; border-radius: 12px; cursor: pointer; }
 
   @media (min-width: 900px) {
     .landing { padding: 0 32px 64px; gap: 72px; }
@@ -293,13 +366,16 @@
     .topbar .pill-btn { padding: 0 12px; }
     .brand { font-size: 16px; gap: 8px; }
   }
+  @media (max-width: 460px) {
+    .brand span { position: absolute; left: -9999px; } /* icon only; the name stays readable for screen readers */
+  }
 
   /* ---------- PREP ---------- */
   #screen-prep { padding: 0; }
   .prep-header, .paint-header {
     display: flex; align-items: center; gap: 12px;
     padding: 14px 18px;
-    background: rgba(10,10,10,0.7);
+    background: var(--header-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
@@ -314,7 +390,7 @@
     color: var(--text);
   }
   .icon-btn:active { background: var(--surface-2); }
-  .icon-btn.active { background: var(--accent-soft); color: var(--accent); }
+  .icon-btn.active { background: var(--accent-soft); color: var(--accent-text); }
   .icon-btn svg { width: 20px; height: 20px; }
 
   .prep-body {
@@ -341,7 +417,7 @@
   }
   .control-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
   .control-row .label { font-size: 14px; color: var(--text-dim); }
-  .control-row .value { font-size: 14px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .control-row .value { font-size: 14px; color: var(--accent-text); font-variant-numeric: tabular-nums; }
   input[type="range"] {
     -webkit-appearance: none; appearance: none;
     width: 100%; height: 4px;
@@ -374,7 +450,7 @@
   /* Overlay blocker during generation */
   .generating-overlay {
     position: absolute; inset: 0; z-index: 50;
-    background: rgba(10,10,10,0.55);
+    background: var(--overlay-bg);
     backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
     display: none; align-items: center; justify-content: center;
     flex-direction: column; gap: 16px;
@@ -382,7 +458,7 @@
   .generating-overlay.active { display: flex; }
   .generating-overlay .gen-spinner {
     width: 40px; height: 40px;
-    border: 3px solid rgba(255,255,255,0.15); border-top-color: var(--accent);
+    border: 3px solid var(--border); border-top-color: var(--accent);
     border-radius: 50%; animation: spin 0.7s linear infinite;
   }
   .generating-overlay .gen-text {
@@ -391,7 +467,7 @@
 
   /* ---------- PAINT ---------- */
   #screen-paint { background: var(--canvas-bg); }
-  .paint-header { background: rgba(10,10,10,0.85); }
+  .paint-header { background: var(--header-bg-strong); }
   .project-title { display: flex; flex-direction: column; min-width: 0; }
   #project-name {
     font: inherit; color: inherit; background: none; border: 1px solid transparent; border-radius: 8px;
@@ -403,6 +479,7 @@
   .paint-progress { font-family: var(--sans); font-size: 12px; color: var(--text-mute); }
   #tool-clear.confirm { color: #ff4d4d; background: rgba(255,50,50,0.15); }
   .paint-stage {
+    background: var(--stage-bg);
     flex: 1; min-height: 0; position: relative;
     overflow: hidden;
     touch-action: none;
@@ -425,7 +502,7 @@
     image-rendering: auto;
   }
   .palette {
-    background: rgba(10,10,10,0.92);
+    background: var(--palette-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid var(--border);
@@ -447,7 +524,7 @@
     font-size: 14px;
     transition: transform 0.15s ease, border-color 0.15s ease;
   }
-  .swatch.active { border-color: #fff; transform: scale(1.06); box-shadow: 0 0 0 2px var(--accent); }
+  .swatch.active { border-color: var(--text); transform: scale(1.06); box-shadow: 0 0 0 2px var(--accent); }
   .swatch span { mix-blend-mode: difference; color: #fff; }
   .toolbar-floating {
     position: absolute; left: 12px; top: 12px;
@@ -552,7 +629,7 @@
     box-shadow: 0 0 0 4px var(--accent-soft);
   }
   .preset-pill.active .preset-k,
-  .preset-pill.active .preset-hint { color: var(--accent); }
+  .preset-pill.active .preset-hint { color: var(--accent-text); }
 
   /* ---------- ICON LABELS (paint/prep header) ---------- */
   /* Small label under each header icon so first-time users know what a button does. */
@@ -573,7 +650,7 @@
     color: var(--text-dim);
   }
   .paint-header .icon-btn.active .icon-label,
-  .prep-header .icon-btn.active .icon-label { color: var(--accent); }
+  .prep-header .icon-btn.active .icon-label { color: var(--accent-text); }
 
   /* ---------- TUTORIAL / HOW-TO ---------- */
   .tutorial-backdrop {
@@ -603,7 +680,7 @@
     border-radius: 20px;
     display: flex; align-items: center; justify-content: center;
     font-size: 36px;
-    background: var(--accent-soft); color: var(--accent);
+    background: var(--accent-soft); color: var(--accent-text);
   }
   .tutorial-visual .step-icon svg { width: 40px; height: 40px; }
   .tutorial-content {
@@ -611,7 +688,7 @@
     display: flex; flex-direction: column; gap: 12px;
   }
   .tutorial-content .step-counter {
-    font-size: 12px; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase;
+    font-size: 12px; color: var(--accent-text); letter-spacing: 0.06em; text-transform: uppercase;
   }
   .tutorial-content h3 {
     font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 0;
@@ -685,6 +762,10 @@
   <div class="landing">
     <header class="topbar">
       <div class="brand"><img src="icon-192.png" alt="" width="32" height="32"><span>Paint by Numbers</span></div>
+      <button class="pill-btn theme-btn" id="theme-toggle" type="button" aria-label="Switch to light theme">
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
       <button class="pill-btn like-btn" data-like type="button" aria-pressed="false" aria-label="Like this tool">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         <span class="count" data-like-count>–</span>
@@ -707,6 +788,11 @@
           </label>
           <button class="btn-ghost" id="try-example" type="button">Try the example</button>
         </div>
+        <label class="import-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Import a backup (.pbn.json)
+          <input type="file" id="import-input" accept=".json,.pbn,application/json" style="position:absolute;opacity:0;width:1px;height:1px">
+        </label>
         <div class="hero-meta">
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Your photo never leaves this device</span>
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Ready in seconds</span>
@@ -727,6 +813,19 @@
       </figure>
     </div>
 
+    <section class="how" aria-labelledby="how-title">
+      <div class="section-head">
+        <span class="kicker">How it works</span>
+        <h2 id="how-title">From photo to painting in three steps</h2>
+      </div>
+      <ol class="steps">
+        <li><span class="pot" style="--pot:#2e4175;--pot-ink:#fff" aria-hidden="true">1</span><div><strong>Choose a photo</strong><span>From your library, camera or files. It stays on your device — nothing is uploaded.</span></div></li>
+        <li><span class="pot" style="--pot:#efa171;--pot-ink:#1c1815" aria-hidden="true">2</span><div><strong>Pick the detail level</strong><span>8 to 50 colors. Fewer colors give bigger, easier fields; you can generate again any time.</span></div></li>
+        <li><span class="pot" style="--pot:#704e8f;--pot-ink:#fff" aria-hidden="true">3</span><div><strong>Paint or print</strong><span>Tap a color and fill the fields with its number — or print the template with its color guide.</span></div></li>
+      </ol>
+      <p class="how-more"><button class="text-link" id="howto-btn" type="button">Show me step by step</button></p>
+    </section>
+
     <section class="hero-projects" id="hero-projects" aria-labelledby="projects-title">
       <div class="section-head" id="projects-title">
         <span class="kicker">Continue</span>
@@ -737,30 +836,37 @@
 
     <section aria-labelledby="features-title">
       <div class="section-head">
-        <span class="kicker">What you get</span>
-        <h2 id="features-title">Everything in one page — nothing to install</h2>
+        <span class="kicker">What you can do</span>
+        <h2 id="features-title">See it before you try it</h2>
+      </div>
+      <div class="showcase">
+        <article class="show-row">
+          <img src="feat-levels.jpg" width="1200" height="540" loading="lazy" alt="The same photo as a template with 8 colors and big fields, and with 50 colors and fine detail">
+          <div class="show-copy">
+            <h3>Easy for kids, detailed for you</h3>
+            <p>Five levels from “Kids” (8 colors, big shapes) to “Fine” (50 colors). Same photo, very different template — try a level, go back, try another.</p>
+          </div>
+        </article>
+        <article class="show-row flip">
+          <img src="feat-paint.jpg" width="1200" height="760" loading="lazy" alt="Paint screen: the numbered template partly filled in, tools on the left, the numbered color palette at the bottom">
+          <div class="show-copy">
+            <h3>Paint right on the screen</h3>
+            <p>Pick a numbered color and paint with finger, mouse or Apple Pencil — pressure-sensitive, with palm rejection, zoom, eraser and 30 undo steps. Every stroke is saved automatically.</p>
+          </div>
+        </article>
+        <article class="show-row">
+          <img src="feat-print.jpg" width="1200" height="640" loading="lazy" alt="Exported PDF: page one with the numbered template, page two with the color guide and hex codes">
+          <div class="show-copy">
+            <h3>Or print it and use real paint</h3>
+            <p>One tap exports an A4 PDF: the numbered template on page one, the color guide with every swatch and hex code on page two. Or send it straight to your printer.</p>
+          </div>
+        </article>
       </div>
       <div class="feature-grid">
-        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h3>Private by design</h3><p>The template is computed in your browser. No upload, no account, no tracking of your pictures.</p></div>
-        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></div><h3>Five detail levels</h3><p>From “Kids” with 8 colors and big shapes to “Fine” with 50 colors for detailed portraits.</p></div>
-        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg></div><h3>Made for Apple Pencil</h3><p>Pressure-sensitive strokes, palm rejection, pinch zoom, eraser and 30 undo steps. Mouse and touch work too.</p></div>
-        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div><h3>Print it on paper</h3><p>Export an A4 PDF: the numbered template on page one, the color guide with hex codes on page two.</p></div>
-        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></div><h3>Never lose a painting</h3><p>Every stroke is saved automatically. Export a backup file and continue on another device.</p></div>
-        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div><h3>Installs like an app</h3><p>Add it to your home screen from the share menu. After that it opens full screen and runs without internet.</p></div>
+        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h3>Private by design</h3><p>The template is computed in your browser. No upload, no account.</p></div>
+        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg></div><h3>Backup and move</h3><p>Save a project as a backup file and import it on another device to continue painting.</p></div>
+        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div><h3>Installs like an app</h3><p>Add it to your home screen from the share menu. It then opens full screen and works without internet.</p></div>
       </div>
-    </section>
-
-    <section aria-labelledby="how-title">
-      <div class="section-head">
-        <span class="kicker">How it works</span>
-        <h2 id="how-title">Three steps to your own template</h2>
-      </div>
-      <ol class="steps">
-        <li><strong>Choose a photo</strong><span>From your library, camera or files — or start with the example.</span></li>
-        <li><strong>Pick the detail level</strong><span>Fewer colors mean bigger, easier fields. You can always generate again.</span></li>
-        <li><strong>Paint or print</strong><span>Tap a color, fill the matching numbers. Save the result as an image or PDF.</span></li>
-      </ol>
-      <p style="margin-top:14px;text-align:center"><button class="text-link" id="howto-btn" type="button">Show me step by step</button> · <label class="text-link">Import a backup<input type="file" id="import-input" accept=".json,.pbn,application/json" style="position:absolute;opacity:0;width:1px;height:1px"></label></p>
     </section>
 
     <section class="support" aria-labelledby="support-title">
@@ -773,7 +879,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           <span><span class="count" data-like-count>–</span> likes</span>
         </button>
-        <a class="pill-btn coffee-btn" data-coffee target="_blank" rel="noopener" style="background:var(--accent);border-color:var(--accent);color:#fff">
+        <a class="pill-btn coffee-btn" data-coffee target="_blank" rel="noopener" style="background:var(--cta);border-color:var(--cta);color:#fff">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
           Buy me a coffee
         </a>
@@ -2777,6 +2883,27 @@ $('#try-example').addEventListener('click', async () => {
 $('#compare-range').addEventListener('input', (e) => {
   $('#compare').style.setProperty('--pos', e.target.value + '%');
 });
+
+// Theme toggle. Without a stored choice the page keeps following the system setting.
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  $('#theme-toggle').setAttribute('aria-label', t === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = t === 'light' ? '#FFFFFF' : '#0A0A0A';
+}
+applyTheme(document.documentElement.dataset.theme);
+$('#theme-toggle').addEventListener('click', () => {
+  const t = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+  try { localStorage.setItem('theme', t); } catch (_) {}
+  applyTheme(t);
+});
+if (window.matchMedia) {
+  matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+    let stored = null;
+    try { stored = localStorage.getItem('theme'); } catch (_) {}
+    if (stored !== 'light' && stored !== 'dark') applyTheme(e.matches ? 'light' : 'dark');
+  });
+}
 
 // TODO(owner): replace with the real profile, e.g. https://buymeacoffee.com/<name>
 const BMC_URL = 'https://buymeacoffee.com/';

@@ -15,6 +15,7 @@
 | L-01 | P1 | Before promotion: set the real Buy-me-a-coffee profile in `BMC_URL` (`index.html`) — currently the buymeacoffee.com homepage. |
 | L-02 | P2 | Like counter depends on the free service abacus.jasoncameron.dev (keys expire after long inactivity, no SLA). If it disappears the button still works locally and shows the cached count; consider an own endpoint once traffic justifies it. `LIKE_BASE = 34` is a fixed offset chosen by the owner, not measured likes. |
 | L-03 | P3 | `loadFromFile` uses `img.decode()`, which stalls while the tab is hidden (seen in the embedded test browser only). `createImageBitmap(file)` would avoid it — check HEIC support on iOS first. |
+| L-04 | P3 | Theme toggle exists only on the start screen; the paint and setup screens follow the chosen theme but offer no switch. Add one to the paint header if users ask. |
 | D-04 | P3 | Modals have Escape / backdrop close and initial focus, but no full focus trap (rest of R-18). `user-scalable=no` stays: deliberate for a drawing surface. |
 
 ---
@@ -37,6 +38,11 @@
 - Difficulty analysis ("this image has a lot of small regions, want to try the Easy preset first?")
 
 ---
+
+## Done in 0.12.0 (2026-09-21)
+
+- ✅ Light theme with system default + toggle
+- ✅ Feature showcase with screenshots (levels, paint screen, PDF pages), steps directly under the hero, import-backup button in the hero
 
 ## Done in 0.11.0 (2026-09-21)
 

@@ -65,6 +65,7 @@ Screenshots from the running app (synthetic test image, iPad landscape viewport)
 | [manifest.webmanifest](manifest.webmanifest) | PWA manifest |
 | [tests/worker.test.mjs](tests/worker.test.mjs) | Unit tests for the image pipeline (Node test runner, no dependencies) |
 | [tests/example-assets.playwright.js](tests/example-assets.playwright.js) | Opt-in script that regenerates the landing-page example images |
+| [tests/feature-assets.playwright.js](tests/feature-assets.playwright.js) + [.py](tests/feature-assets.py) | Opt-in scripts for the feature pictures (templates, paint screen, rasterised PDF pages) |
 | [tests/screenshots.playwright.js](tests/screenshots.playwright.js) | Opt-in script that regenerates the README screenshots |
 | [SPEC.md](SPEC.md) | Technical specification |
 | [brief.md](brief.md) | Project brief: problem, goals, anti-goals |
@@ -82,10 +83,12 @@ paint-by-numbers-pwa/
 ├── icon-192.png / icon-512.png # app icons
 ├── og-image.png                # social preview
 ├── example.jpg / example-after.jpg  # landing-page example (photo + template)
+├── feat-levels.jpg / feat-paint.jpg / feat-print.jpg  # landing-page feature pictures
 ├── robots.txt / sitemap.xml
 ├── tests/
 │   ├── worker.test.mjs         # pipeline unit tests
 │   ├── example-assets.playwright.js
+│   ├── feature-assets.playwright.js / feature-assets.py
 │   └── screenshots.playwright.js
 ├── docs/screenshots/           # README images
 ├── .github/workflows/test.yml  # CI: npm test
@@ -116,7 +119,7 @@ middle mouse button or Space + drag pans as well.
 
 ## Status & Open Items
 
-Version 0.11.0. All findings of the 2026-09-21 review are implemented and the start screen is a landing page with a live example; the Buy-me-a-coffee URL is still a placeholder (backlog L-01); palm rejection and
+Version 0.12.0 (light + dark theme). All findings of the 2026-09-21 review are implemented and the start screen is a landing page with a live example; the Buy-me-a-coffee URL is still a placeholder (backlog L-01); palm rejection and
 focal-point pinch zoom are verified with synthetic pointer events only and still need a pass
 on a real iPad with a Pencil (see [BACKLOG.md](BACKLOG.md)).
 
