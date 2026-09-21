@@ -2,7 +2,8 @@
 
     python3 tests/feature-assets.py        (macOS: uses `qlmanage` to rasterise the PDF pages; needs Pillow)
 
-Output (repo root): feat-levels.jpg, feat-paint.jpg, feat-print.jpg
+Output (repo root): example-after.jpg, step-2.jpg, step-3.jpg (from example-assets.playwright.js),
+feat-levels.jpg, feat-paint.jpg, feat-print.jpg (from feature-assets.playwright.js)
 """
 import subprocess
 from pathlib import Path
@@ -53,10 +54,22 @@ def pdf_page(n):
     return Image.open(OUT / f"print-{n}.pdf.png").convert("RGB")
 
 
+# 0) pictures derived from the example photo
+def jpg(src, dst, size=None, quality=82):
+    im = Image.open(OUT / src).convert("RGB")
+    if size:
+        im = im.resize(size, Image.LANCZOS)
+    im.save(ROOT / dst, quality=quality, optimize=True, progressive=True)
+
+
+jpg("example-after.png", "example-after.jpg", quality=76)
+jpg("step-template.png", "step-2.jpg", (720, 540))
+jpg("step-painted.png", "step-3.jpg", (720, 540))
+
 # 1) detail levels: same photo, lowest vs highest level
-c = Image.new("RGBA", (W, 540), BG + (255,))
+c = Image.new("RGBA", (W, 580), BG + (255,))
 for name, text, x in (("kids", "Kids · 8 colors", 36), ("fine", "Fine · 50 colors", 612)):
-    px, py, w, h = sheet(c, Image.open(OUT / f"levels-{name}.png"), (x, 50, x + 552, 50 + 368))
+    px, py, w, h = sheet(c, Image.open(OUT / f"levels-{name}.png"), (x, 40, x + 552, 40 + 414))
     label(c, text, px + w // 2, py + h + 24)
 c.convert("RGB").save(ROOT / "feat-levels.jpg", quality=84, optimize=True, progressive=True)
 

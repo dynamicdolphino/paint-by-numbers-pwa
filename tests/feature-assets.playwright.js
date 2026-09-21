@@ -4,10 +4,18 @@
 //   print-1.pdf / print-2.pdf          the two pages of the real PDF export
 // `tests/feature-assets.py` turns them into feat-levels.jpg, feat-paint.jpg and feat-print.jpg.
 // Run through a Playwright runner that hands in `page` while `npm start` serves :8000.
+// The whole run takes over a minute; if the runner's call times out (the Playwright MCP does),
+// paste the blocks one after the other — they only share `window.__payload` / `window.__pdfBlob`.
 async (page) => {
   const out = 'tests/.out/';
   await page.setViewportSize({ width: 1200, height: 760 });
   await page.goto('http://localhost:8000/');
+  // The service worker serves assets cache-first — drop it so the current files are used.
+  await page.evaluate(async () => {
+    for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+    for (const k of await caches.keys()) await caches.delete(k);
+  });
+  await page.reload();
   await page.evaluate(() => { localStorage.setItem('theme', 'light'); });
   await page.reload();
   await page.evaluate(async () => {
@@ -33,10 +41,10 @@ async (page) => {
       x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
       x.drawImage(src, 0, 0);
       c.id = 'shot';
-      c.style.cssText = 'position:fixed;left:0;top:0;width:1200px;height:800px;z-index:99999';
+      c.style.cssText = 'position:fixed;left:0;top:0;width:1200px;height:900px;z-index:99999';
       document.body.appendChild(c);
     });
-    await page.setViewportSize({ width: 1200, height: 800 });
+    await page.setViewportSize({ width: 1200, height: 900 });
     await page.locator('#shot').screenshot({ path: out + name });
     await page.evaluate(() => document.querySelector('#shot').remove());
     await page.setViewportSize({ width: 1200, height: 760 });
@@ -50,7 +58,7 @@ async (page) => {
   }
 
   // Paint screen: fill the fields on the left two thirds the way a user would, field by field.
-  await generate('easy');
+  await generate('standard');
   await page.evaluate(() => {
     const W = state.width, H = state.height;
     const { lineImage, numbers } = window.__payload;
@@ -77,7 +85,7 @@ async (page) => {
     }
     ctx.putImageData(img, 0, 0);
     updateProgress();
-    document.querySelector('#project-name').value = state.projectName = 'Sunset lake';
+    document.querySelector('#project-name').value = state.projectName = 'Sleeping cat';
     document.querySelectorAll('#palette .swatch')[5].click();
   });
   await page.screenshot({ path: out + 'feat-paint.png' });

@@ -245,7 +245,7 @@
   /* Before/after: the range input on top is the whole interaction (drag, tap, arrow keys). */
   .compare { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
   .compare-frame {
-    position: relative; aspect-ratio: 3 / 2; border-radius: var(--radius-lg); overflow: hidden;
+    position: relative; aspect-ratio: 4 / 3; border-radius: var(--radius-lg); overflow: hidden;
     border: 1px solid var(--border); background: #111; box-shadow: var(--card-shadow);
     --pos: 38%;
   }
@@ -287,16 +287,18 @@
   /* Steps: a real sequence — the markers are numbered paint pots in colors of the example palette. */
   .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; list-style: none; margin: 0; padding: 0; }
   .steps li {
-    display: flex; gap: 16px; align-items: flex-start; text-align: left; padding: 22px;
+    display: flex; flex-direction: column; text-align: left; overflow: hidden;
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
   }
+  .steps li > img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; display: block; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+  .step-body { display: flex; gap: 16px; align-items: flex-start; padding: 20px 22px 22px; }
   .pot {
     flex: none; width: 52px; height: 52px; border-radius: 50%; background: var(--pot); color: var(--pot-ink);
     font-family: var(--serif); font-size: 24px; display: flex; align-items: center; justify-content: center;
     box-shadow: inset 0 -6px 0 rgba(0,0,0,0.16), 0 0 0 4px var(--bg), 0 0 0 5px var(--border);
   }
   .steps strong { display: block; font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-  .steps li span:not(.pot) { font-size: 15px; line-height: 1.5; color: var(--text-dim); }
+  .step-body div span { font-size: 15px; line-height: 1.5; color: var(--text-dim); }
   .how-more { margin-top: 10px; text-align: center; }
 
   .import-btn {
@@ -675,6 +677,8 @@
     padding: 32px 24px;
     min-height: 180px;
   }
+  .tutorial-visual.has-img { padding: 0; }
+  .tutorial-visual img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
   .tutorial-visual .step-icon {
     width: 80px; height: 80px;
     border-radius: 20px;
@@ -801,15 +805,15 @@
 
       <figure class="compare" style="margin:0">
         <div class="compare-frame" id="compare">
-          <img class="after" src="example-after.jpg" width="1200" height="800" alt="The same scene as a numbered template, half of it painted in flat colors">
-          <img class="before" src="example.jpg" width="1200" height="800" alt="Example photo: sunset over a lake with mountains and pine trees">
+          <img class="after" src="example-after.jpg" width="1200" height="900" alt="The same photo as a numbered template, the left half already painted in flat colors">
+          <img class="before" src="example.jpg" width="1200" height="900" alt="Example photo: a tabby cat asleep on blue patterned cushions">
           <span class="chip l" aria-hidden="true">Photo</span>
           <span class="chip r" aria-hidden="true">Template</span>
           <span class="divider" aria-hidden="true"></span>
           <span class="knob" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 3 12 9 18"/><polyline points="15 6 21 12 15 18"/></svg></span>
           <input type="range" id="compare-range" min="0" max="100" value="38" step="1" aria-label="Compare photo and template">
         </div>
-        <figcaption>Drag to compare — made with the “Easy” level, 16 colors.</figcaption>
+        <figcaption>Drag to compare — made with the “Standard” level, 24 colors.</figcaption>
       </figure>
     </div>
 
@@ -819,9 +823,18 @@
         <h2 id="how-title">From photo to painting in three steps</h2>
       </div>
       <ol class="steps">
-        <li><span class="pot" style="--pot:#2e4175;--pot-ink:#fff" aria-hidden="true">1</span><div><strong>Choose a photo</strong><span>From your library, camera or files. It stays on your device — nothing is uploaded.</span></div></li>
-        <li><span class="pot" style="--pot:#efa171;--pot-ink:#1c1815" aria-hidden="true">2</span><div><strong>Pick the detail level</strong><span>8 to 50 colors. Fewer colors give bigger, easier fields; you can generate again any time.</span></div></li>
-        <li><span class="pot" style="--pot:#704e8f;--pot-ink:#fff" aria-hidden="true">3</span><div><strong>Paint or print</strong><span>Tap a color and fill the fields with its number — or print the template with its color guide.</span></div></li>
+        <li>
+          <img src="example.jpg" width="1200" height="900" loading="lazy" alt="A photo of a sleeping cat">
+          <div class="step-body"><span class="pot" style="--pot:#2e4175;--pot-ink:#fff" aria-hidden="true">1</span><div><strong>Choose a photo</strong><span>From your library, camera or files. It stays on your device — nothing is uploaded.</span></div></div>
+        </li>
+        <li>
+          <img src="step-2.jpg" width="720" height="540" loading="lazy" alt="The photo turned into outlines with a number in every field">
+          <div class="step-body"><span class="pot" style="--pot:#efa171;--pot-ink:#1c1815" aria-hidden="true">2</span><div><strong>Get your template</strong><span>Pick a detail level from 8 to 50 colors. Fewer colors give bigger, easier fields.</span></div></div>
+        </li>
+        <li>
+          <img src="step-3.jpg" width="720" height="540" loading="lazy" alt="The template with every field filled in its color">
+          <div class="step-body"><span class="pot" style="--pot:#704e8f;--pot-ink:#fff" aria-hidden="true">3</span><div><strong>Paint or print</strong><span>Tap a color and fill the fields with its number — or print the template with its color guide.</span></div></div>
+        </li>
       </ol>
       <p class="how-more"><button class="text-link" id="howto-btn" type="button">Show me step by step</button></p>
     </section>
@@ -841,7 +854,7 @@
       </div>
       <div class="showcase">
         <article class="show-row">
-          <img src="feat-levels.jpg" width="1200" height="540" loading="lazy" alt="The same photo as a template with 8 colors and big fields, and with 50 colors and fine detail">
+          <img src="feat-levels.jpg" width="1200" height="580" loading="lazy" alt="The same photo as a template with 8 colors and big fields, and with 50 colors and fine detail">
           <div class="show-copy">
             <h3>Easy for kids, detailed for you</h3>
             <p>Five levels from “Kids” (8 colors, big shapes) to “Fine” (50 colors). Same photo, very different template — try a level, go back, try another.</p>
@@ -2802,16 +2815,19 @@ window.addEventListener('resize', () => {
 const tutorialSteps = [
   {
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+    img: 'example.jpg', alt: 'A photo of a sleeping cat',
     title: '1. Upload your photo',
     text: 'Choose any photo from your device. Everything runs locally in your browser — your photos are never uploaded to any server.'
   },
   {
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/></svg>',
+    img: 'step-2.jpg', alt: 'The photo as a numbered template',
     title: '2. Generate template',
     text: 'Pick a detail level. We analyze the colors and automatically convert your photo into a paint-by-numbers template.'
   },
   {
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.06 11.9l8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04 0-1.67-1.34-3.02-3-3.02z"/></svg>',
+    img: 'step-3.jpg', alt: 'The template with every field painted',
     title: '3. Paint it',
     text: 'Use the interactive canvas to paint digitally, or print it out to paint on real paper with real colors.'
   },
@@ -2829,7 +2845,15 @@ function showTutorialStep(index) {
   currentTutorialStep = index;
   const step = tutorialSteps[index];
   
-  $('#tutorial-visual').innerHTML = `<div class="step-icon">${step.icon}</div>`;
+  const visual = $('#tutorial-visual');
+  visual.classList.toggle('has-img', !!step.img);
+  if (step.img) {
+    const img = document.createElement('img');
+    img.src = step.img; img.alt = step.alt;
+    visual.replaceChildren(img);
+  } else {
+    visual.innerHTML = `<div class="step-icon">${step.icon}</div>`;
+  }
   $('#tutorial-counter').textContent = `Step ${index + 1} of ${tutorialSteps.length}`;
   $('#tutorial-title').textContent = step.title;
   $('#tutorial-text').textContent = step.text;
@@ -2873,7 +2897,7 @@ $('#try-example').addEventListener('click', async () => {
     const res = await fetch('example.jpg');
     if (!res.ok) throw new Error(res.status);
     await loadFromFile(new File([await res.blob()], 'example.jpg', { type: 'image/jpeg' }));
-    selectPreset('easy');
+    selectPreset('standard');
   } catch (_) {
     toast('Example not available offline yet', 3000);
   } finally {
