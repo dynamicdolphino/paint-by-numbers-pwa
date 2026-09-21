@@ -15,7 +15,6 @@
 | L-01 | P1 | Before promotion: set the real Buy-me-a-coffee profile in `BMC_URL` (`index.html`) — currently the buymeacoffee.com homepage. |
 | L-02 | P2 | Like counter depends on the free service abacus.jasoncameron.dev (keys expire after long inactivity, no SLA). If it disappears the button still works locally and shows the cached count; consider an own endpoint once traffic justifies it. `LIKE_BASE = 34` is a fixed offset chosen by the owner, not measured likes. |
 | L-03 | P3 | `loadFromFile` uses `img.decode()`, which stalls while the tab is hidden (seen in the embedded test browser only). `createImageBitmap(file)` would avoid it — check HEIC support on iOS first. |
-| L-05 | P1 | ⚠️ Rights of `example.jpg` (cat photo supplied by the owner on 2026-09-21) are unverified. Before promotion confirm it is the owner's own photo or under a license that allows web use without attribution (e.g. Unsplash/Pexels); otherwise add the credit or swap the file and rerun the asset scripts. |
 | L-04 | P3 | Theme toggle exists only on the start screen; the paint and setup screens follow the chosen theme but offer no switch. Add one to the paint header if users ask. |
 | D-04 | P3 | Modals have Escape / backdrop close and initial focus, but no full focus trap (rest of R-18). `user-scalable=no` stays: deliberate for a drawing surface. |
 
@@ -42,6 +41,7 @@
 
 ## Done in 0.13.0 (2026-09-21)
 
+- ✅ L-05 — `example.jpg` is a Pexels photo (stated by the owner, 2026-09-21). Pexels license: free to use, attribution not required; credited in the README anyway. Photographer / photo URL not recorded — add if known.
 - ✅ Real photo as example everywhere (slider, steps, tutorial, feature pictures, README screenshots)
 
 ## Done in 0.12.0 (2026-09-21)
