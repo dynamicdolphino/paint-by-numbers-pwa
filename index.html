@@ -6,6 +6,7 @@
 <meta name="description" content="Turn any photo into a paint-by-numbers template instantly. Free online tool with Apple Pencil support — no uploads, everything stays private on your device.">
 <meta name="keywords" content="paint by numbers, custom paint by numbers, photo to paint by numbers, template generator, free, online, iPad, Apple Pencil, paint by numbers from photo">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Paint">
@@ -17,9 +18,13 @@
 <meta property="og:description" content="Turn any photo into a paint-by-numbers template. Free, private, works offline on any device.">
 <meta property="og:url" content="https://dynamicdolphino.github.io/paint-by-numbers-pwa/">
 <meta property="og:site_name" content="Paint by Numbers">
+<meta property="og:image" content="https://dynamicdolphino.github.io/paint-by-numbers-pwa/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Paint by Numbers — Custom Templates from Photos">
+<meta name="twitter:image" content="https://dynamicdolphino.github.io/paint-by-numbers-pwa/og-image.png">
 <meta name="twitter:description" content="Free online tool to create paint-by-numbers templates from your own photos. Works offline.">
 <!-- Canonical -->
 <link rel="canonical" href="https://dynamicdolphino.github.io/paint-by-numbers-pwa/">
@@ -39,6 +44,7 @@
 }
 </script>
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
   :root {
@@ -114,41 +120,61 @@
   /* ---------- START ---------- */
   #screen-start {
     align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 48px 32px;
+    justify-content: flex-start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     background:
-      radial-gradient(60% 50% at 50% 0%, rgba(232,101,26,0.10), transparent 70%),
+      radial-gradient(60% 420px at 50% 0%, rgba(232,101,26,0.12), transparent 70%),
       var(--bg);
   }
-  #screen-start .inner {
-    max-width: 960px; width: 100%;
-    display: flex; flex-direction: column; gap: 48px; align-items: center; justify-content: center;
-    animation: fadeSlideIn 0.5s ease both;
+  .landing { width: 100%; max-width: 1120px; padding: 0 20px 48px; display: flex; flex-direction: column; gap: 56px; animation: fadeSlideIn 0.5s ease both; }
+  .topbar { display: flex; align-items: center; gap: 12px; padding: 16px 0 0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: var(--serif); font-size: 18px; margin-right: auto; min-width: 0; }
+  .brand img { width: 32px; height: 32px; border-radius: 9px; }
+  .brand span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pill-btn {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px;
+    border-radius: 999px; border: 1px solid var(--border); background: var(--surface);
+    color: var(--text-dim); font-size: 14px; font-weight: 500; text-decoration: none; cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
   }
-  .hero-content {
-    display: flex; flex-direction: column; gap: 24px; align-items: center; max-width: 480px; width: 100%;
-  }
-  .hero-projects {
-    display: flex; flex-direction: column; gap: 16px; align-items: center;
-    width: 100%; max-width: 480px; min-width: 0;
-  }
-  .hero-projects .title { font-size: 13px; color: var(--text-mute); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; }
+  .pill-btn:hover { background: var(--surface-2); color: var(--text); }
+  .pill-btn:active { transform: scale(0.97); }
+  .pill-btn svg { width: 16px; height: 16px; flex: none; }
+  .like-btn svg { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  .like-btn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent-soft); background: var(--accent-soft); }
+  .like-btn[aria-pressed="true"] svg { fill: currentColor; transform: scale(1.15); }
+  .like-btn .count { font-variant-numeric: tabular-nums; }
+  .coffee-btn { color: var(--text); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  #screen-start .tag { font-size: 13px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; }
-  #screen-start .subtitle {
-    font-size: 14px; color: var(--text-mute); max-width: 340px; line-height: 1.55;
+  .hero { display: grid; gap: 32px; align-items: center; }
+  .hero-copy { display: flex; flex-direction: column; gap: 20px; align-items: center; text-align: center; }
+  .eyebrow {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px;
   }
+  .hero h1 { font-size: clamp(38px, 6vw, 60px); line-height: 1.05; text-wrap: balance; }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero .lead { font-size: 17px; color: var(--text-dim); max-width: 46ch; }
   .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: center; font-size: 13px; color: var(--text-mute); }
+  .hero-meta span { display: inline-flex; align-items: center; gap: 6px; }
+  .hero-meta svg { width: 14px; height: 14px; color: var(--accent); }
+  .text-link { color: var(--text-dim); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; }
+  .text-link:hover { color: var(--text); }
+
   .btn-primary {
     background: var(--accent);
     color: #fff;
     padding: 16px 28px;
     border-radius: 999px;
-    font-weight: 500;
+    font-weight: 600;
     font-size: 17px;
+    cursor: pointer;
     transition: transform 0.15s ease, background 0.15s ease;
   }
+  .btn-primary:hover { background: #f0742a; }
   .btn-primary:active { transform: scale(0.97); background: #d65a14; }
   .btn-primary:disabled, .btn-primary.loading {
     opacity: 0.6; pointer-events: none; cursor: not-allowed;
@@ -166,90 +192,106 @@
     border-radius: 999px;
     border: 1px solid var(--border);
     font-size: 15px;
+    cursor: pointer;
+    transition: background 0.15s ease;
   }
-  .btn-ghost:active { background: var(--surface-2); }
+  .btn-ghost:hover, .btn-ghost:active { background: var(--surface-2); }
+  label.btn-primary:focus-within, label.btn-ghost:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Before/after: the range input on top is the whole interaction (drag, tap, arrow keys). */
+  .compare { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .compare-frame {
+    position: relative; aspect-ratio: 3 / 2; border-radius: var(--radius-lg); overflow: hidden;
+    border: 1px solid var(--border); background: #111; box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    --pos: 38%;
+  }
+  .compare-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .compare-frame .before { clip-path: inset(0 calc(100% - var(--pos)) 0 0); }
+  .compare-frame .divider { position: absolute; top: 0; bottom: 0; left: var(--pos); width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.25); pointer-events: none; }
+  .compare-frame .knob {
+    position: absolute; top: 50%; left: var(--pos); width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%;
+    background: #fff; color: #111; display: flex; align-items: center; justify-content: center; pointer-events: none;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+  .compare-frame .knob svg { width: 22px; height: 22px; }
+  .compare-frame .chip {
+    position: absolute; top: 12px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; padding: 5px 10px; border-radius: 999px;
+    background: rgba(10,10,10,0.72); color: #fff; pointer-events: none;
+  }
+  .compare-frame .chip.l { left: 12px; } .compare-frame .chip.r { right: 12px; }
+  .compare-frame input[type="range"] {
+    position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; touch-action: pan-y;
+  }
+  .compare-frame:focus-within { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .compare figcaption, .compare .caption { font-size: 13px; color: var(--text-mute); text-align: center; }
+
+  .section-head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+  .section-head h2 { font-size: clamp(24px, 3vw, 30px); margin: 0; }
+  .section-head p { font-size: 15px; }
+  .kicker { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .feature {
+    display: flex; flex-direction: column; gap: 8px; padding: 20px; text-align: left;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  }
+  .feature .ico { width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
+  .feature .ico svg { width: 20px; height: 20px; }
+  .feature h3 { margin: 0; font-size: 16px; font-weight: 600; font-family: var(--sans); }
+  .feature p { font-size: 14px; line-height: 1.5; }
+
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; counter-reset: step; list-style: none; margin: 0; padding: 0; }
+  .steps li { counter-increment: step; position: relative; padding: 18px 18px 18px 64px; border-radius: var(--radius-lg); border: 1px solid var(--border); text-align: left; }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 18px; top: 18px; width: 32px; height: 32px; border-radius: 50%;
+    border: 1.5px solid var(--accent); color: var(--accent); font-family: var(--serif); font-size: 17px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .steps strong { display: block; font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .steps span { font-size: 14px; color: var(--text-dim); }
+
+  .support {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; justify-content: space-between; text-align: left;
+    padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--accent-soft);
+    background: linear-gradient(135deg, rgba(232,101,26,0.12), rgba(61,43,26,0.35));
+  }
+  .support h2 { font-size: 22px; margin: 0 0 4px; }
+  .support p { font-size: 14px; max-width: 52ch; }
+  .support .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .footnote { font-size: 12px; color: var(--text-mute); text-align: center; line-height: 1.6; }
+  .footnote a { color: var(--text-dim); }
+
+  .hero-projects { display: flex; flex-direction: column; min-width: 0; }
+  .hero-projects[hidden] { display: none; }
   .resume-list {
-    width: max-content; max-width: 100%;
-    display: flex; gap: 12px; margin-top: 12px; padding: 4px 4px 12px;
-    overflow-x: auto; scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px;
   }
-  .resume-list::-webkit-scrollbar { display: none; }
   .resume-item {
-    scroll-snap-align: start;
-    flex: 0 0 200px; /* Card width */
-    display: flex; flex-direction: column; gap: 12px;
+    display: flex; flex-direction: column; gap: 12px; min-width: 0;
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
     padding: 12px; text-align: left;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
-  .resume-item:active { transform: scale(0.98); }
-  .resume-item img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; background: #222; }
-  .resume-item .meta { display: flex; flex-direction: column; gap: 2px; }
+  .resume-item img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; background: #222; }
+  .resume-item .meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .resume-item .meta .name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .resume-item .meta .when { font-size: 12px; color: var(--text-mute); }
   .resume-item .actions { display: flex; gap: 8px; margin-top: auto; }
-  .resume-item .actions button { flex: 1; padding: 8px 0; font-size: 13px; }
-  .resume-item .del { flex: 0 0 36px !important; color: var(--text-mute); background: rgba(255,255,255,0.05); border: none; border-radius: 8px; }
-  
-  .empty-state {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 8px; padding: 48px 24px; text-align: center;
-    background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius-lg);
-    width: 100%; color: var(--text-mute);
-  }
-  .empty-state .empty-icon { opacity: 0.5; margin-bottom: 8px; }
-  .empty-state .empty-icon svg { width: 48px; height: 48px; stroke-width: 1.5; }
-  .empty-state .empty-title { font-size: 15px; font-weight: 500; color: var(--text-dim); }
-  .empty-state .empty-sub { font-size: 13px; max-width: 220px; line-height: 1.4; }
+  .resume-item .actions button { flex: 1; min-height: 44px; padding: 0; font-size: 14px; }
+  .resume-item .del { flex: 0 0 44px !important; color: var(--text-dim); background: rgba(255,255,255,0.05); border: none; border-radius: 12px; cursor: pointer; }
 
-  .bottom-links {
-    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: center;
-    margin-top: 12px; width: 100%;
+  @media (min-width: 900px) {
+    .landing { padding: 0 32px 64px; gap: 72px; }
+    .hero { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 56px; padding-top: 16px; }
+    .hero-copy { align-items: flex-start; text-align: left; }
+    .hero-buttons, .hero-meta { justify-content: flex-start; }
+    .section-head { text-align: left; }
   }
-  .donate-btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    background: var(--surface); color: var(--text);
-    padding: 8px 14px; border-radius: 999px;
-    font-weight: 500; font-size: 13px; text-decoration: none;
-    border: 1px solid var(--border);
-    transition: transform 0.15s ease, background 0.15s ease;
-  }
-  .donate-btn:active { transform: scale(0.97); }
-  .donate-btn:hover { background: var(--surface-2); }
-
-  .trust-badge {
-    display: flex; align-items: center; gap: 12px; margin-top: 4px;
-  }
-  .like-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--surface); color: var(--text-mute);
-    border: 1px solid var(--border); border-radius: 999px;
-    padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .like-btn:hover { background: var(--surface-2); color: var(--text); transform: scale(1.05); }
-  .like-btn.liked { background: var(--surface-2); color: var(--accent); border-color: var(--accent-soft); }
-  .like-btn svg { width: 14px; height: 14px; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-  .like-btn.liked svg { fill: currentColor; transform: scale(1.2); }
-  .trust-text { font-size: 13px; color: var(--text-mute); }
-
-  @media (min-width: 800px) {
-    #screen-start { text-align: left; }
-    #screen-start .inner { flex-direction: row; align-items: center; justify-content: space-between; gap: 60px; }
-    .hero-content { align-items: flex-start; text-align: left; flex: 1; max-width: 440px; }
-    .hero-projects { align-items: flex-start; flex: 1.2; max-width: 520px; }
-    .hero-buttons { justify-content: flex-start; }
-    .bottom-links { justify-content: flex-start; }
-    .resume-list { 
-      padding: 0; 
-      display: grid; 
-      grid-template-columns: repeat(2, 1fr); 
-      gap: 16px; 
-      width: 100%;
-      overflow: visible;
-    }
-    .resume-item { flex: auto; max-width: 100%; }
+  @media (max-width: 899px) {
+    .section-head { text-align: center; align-items: center; }
+    .coffee-btn .label-long { display: none; }
+    .topbar { gap: 8px; }
+    .topbar .pill-btn { padding: 0 12px; }
+    .brand { font-size: 16px; gap: 8px; }
   }
 
   /* ---------- PREP ---------- */
@@ -350,6 +392,16 @@
   /* ---------- PAINT ---------- */
   #screen-paint { background: var(--canvas-bg); }
   .paint-header { background: rgba(10,10,10,0.85); }
+  .project-title { display: flex; flex-direction: column; min-width: 0; }
+  #project-name {
+    font: inherit; color: inherit; background: none; border: 1px solid transparent; border-radius: 8px;
+    padding: 2px 6px; margin-left: -6px; width: 100%; min-width: 0; text-overflow: ellipsis;
+    user-select: text; -webkit-user-select: text;
+  }
+  #project-name:hover { border-color: var(--border); }
+  #project-name:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+  .paint-progress { font-family: var(--sans); font-size: 12px; color: var(--text-mute); }
+  #tool-clear.confirm { color: #ff4d4d; background: rgba(255,50,50,0.15); }
   .paint-stage {
     flex: 1; min-height: 0; position: relative;
     overflow: hidden;
@@ -582,12 +634,6 @@
     font-size: 15px; text-align: center;
   }
   .btn-link:active { color: var(--text); }
-  .howto-btn {
-    background: none; border: none; color: var(--text-mute);
-    font-size: 13px; padding: 8px 16px; cursor: pointer;
-    text-decoration: underline; text-underline-offset: 3px;
-  }
-  .howto-btn:active { color: var(--text); }
 
   /* ---------- PRINT OPTIONS MODAL ---------- */
   .print-options .modal-card {
@@ -636,57 +682,106 @@
 <main>
 <!-- Screen 1: Start -->
 <section id="screen-start" class="screen active" role="region" aria-label="Home">
-  <div class="inner">
-    <!-- Left side: Hero Content -->
-    <div class="hero-content">
-      <div class="tag" style="background: var(--surface); padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-mute); font-weight: 600; letter-spacing: 0.1em;">100% FREE TOOL</div>
-      <h1 style="margin: 0; line-height: 1.1; font-size: 52px; font-weight: 800; letter-spacing: -0.02em; color: var(--text);">
-        Paint by Numbers.<br>
-        <span style="font-size: 42px; font-weight: 600; color: var(--text-dim);">From your photos.</span>
-      </h1>
-      <p style="margin: 0; font-size: 16px;">Turn any image into a custom template instantly.</p>
-      <p class="subtitle" style="margin: 0;">No subscriptions, no uploads. Everything runs completely offline in your browser for total privacy.</p>
-      
-      <div class="hero-buttons">
-        <label class="btn-primary">
-          Choose photo
-          <input type="file" id="file-input" accept="image/*" style="display:none">
-        </label>
-        <label class="btn-ghost" style="cursor:pointer">
-          Import backup
-          <input type="file" id="import-input" accept=".json,.pbn,application/json" style="display:none">
-        </label>
+  <div class="landing">
+    <header class="topbar">
+      <div class="brand"><img src="icon-192.png" alt="" width="32" height="32"><span>Paint by Numbers</span></div>
+      <button class="pill-btn like-btn" data-like type="button" aria-pressed="false" aria-label="Like this tool">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span class="count" data-like-count>–</span>
+      </button>
+      <a class="pill-btn coffee-btn" data-coffee target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        <span><span class="label-long">Buy me a </span>coffee</span>
+      </a>
+    </header>
+
+    <div class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Free · no sign-up · works offline</div>
+        <h1>Turn your photo into a <em>paint-by-numbers</em> template.</h1>
+        <p class="lead">Pick a photo, choose how detailed it should be, and paint it right here with finger, mouse or Apple Pencil — or print it as a PDF with a color guide.</p>
+        <div class="hero-buttons">
+          <label class="btn-primary">
+            Choose photo
+            <input type="file" id="file-input" accept="image/*" style="position:absolute;opacity:0;width:1px;height:1px">
+          </label>
+          <button class="btn-ghost" id="try-example" type="button">Try the example</button>
+        </div>
+        <div class="hero-meta">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Your photo never leaves this device</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Ready in seconds</span>
+        </div>
       </div>
 
-      <div class="trust-badge">
-        <button id="like-btn" class="like-btn" aria-label="Like this tool">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-          <span id="like-count">12.4k</span>
+      <figure class="compare" style="margin:0">
+        <div class="compare-frame" id="compare">
+          <img class="after" src="example-after.jpg" width="1200" height="800" alt="The same scene as a numbered template, half of it painted in flat colors">
+          <img class="before" src="example.jpg" width="1200" height="800" alt="Example photo: sunset over a lake with mountains and pine trees">
+          <span class="chip l" aria-hidden="true">Photo</span>
+          <span class="chip r" aria-hidden="true">Template</span>
+          <span class="divider" aria-hidden="true"></span>
+          <span class="knob" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 3 12 9 18"/><polyline points="15 6 21 12 15 18"/></svg></span>
+          <input type="range" id="compare-range" min="0" max="100" value="38" step="1" aria-label="Compare photo and template">
+        </div>
+        <figcaption>Drag to compare — made with the “Easy” level, 16 colors.</figcaption>
+      </figure>
+    </div>
+
+    <section class="hero-projects" id="hero-projects" aria-labelledby="projects-title">
+      <div class="section-head" id="projects-title">
+        <span class="kicker">Continue</span>
+        <h2>Your projects</h2>
+      </div>
+      <div class="resume-list" id="resume-list"></div>
+    </section>
+
+    <section aria-labelledby="features-title">
+      <div class="section-head">
+        <span class="kicker">What you get</span>
+        <h2 id="features-title">Everything in one page — nothing to install</h2>
+      </div>
+      <div class="feature-grid">
+        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h3>Private by design</h3><p>The template is computed in your browser. No upload, no account, no tracking of your pictures.</p></div>
+        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></div><h3>Five detail levels</h3><p>From “Kids” with 8 colors and big shapes to “Fine” with 50 colors for detailed portraits.</p></div>
+        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg></div><h3>Made for Apple Pencil</h3><p>Pressure-sensitive strokes, palm rejection, pinch zoom, eraser and 30 undo steps. Mouse and touch work too.</p></div>
+        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div><h3>Print it on paper</h3><p>Export an A4 PDF: the numbered template on page one, the color guide with hex codes on page two.</p></div>
+        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></div><h3>Never lose a painting</h3><p>Every stroke is saved automatically. Export a backup file and continue on another device.</p></div>
+        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div><h3>Installs like an app</h3><p>Add it to your home screen from the share menu. After that it opens full screen and runs without internet.</p></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="how-title">
+      <div class="section-head">
+        <span class="kicker">How it works</span>
+        <h2 id="how-title">Three steps to your own template</h2>
+      </div>
+      <ol class="steps">
+        <li><strong>Choose a photo</strong><span>From your library, camera or files — or start with the example.</span></li>
+        <li><strong>Pick the detail level</strong><span>Fewer colors mean bigger, easier fields. You can always generate again.</span></li>
+        <li><strong>Paint or print</strong><span>Tap a color, fill the matching numbers. Save the result as an image or PDF.</span></li>
+      </ol>
+      <p style="margin-top:14px;text-align:center"><button class="text-link" id="howto-btn" type="button">Show me step by step</button> · <label class="text-link">Import a backup<input type="file" id="import-input" accept=".json,.pbn,application/json" style="position:absolute;opacity:0;width:1px;height:1px"></label></p>
+    </section>
+
+    <section class="support" aria-labelledby="support-title">
+      <div>
+        <h2 id="support-title">Free, no ads — made by one person</h2>
+        <p>If this tool made you smile, leave a like or buy me a coffee. It keeps the project alive.</p>
+      </div>
+      <div class="actions">
+        <button class="pill-btn like-btn" data-like type="button" aria-pressed="false" aria-label="Like this tool">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span><span class="count" data-like-count>–</span> likes</span>
         </button>
-        <span class="trust-text">Loved by painters</span>
-      </div>
-
-      <div class="bottom-links">
-        <button class="howto-btn" id="howto-btn">How does it work?</button>
-        <a href="https://www.buymeacoffee.com/" target="_blank" rel="noopener" class="donate-btn">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        <a class="pill-btn coffee-btn" data-coffee target="_blank" rel="noopener" style="background:var(--accent);border-color:var(--accent);color:#fff">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
           Buy me a coffee
         </a>
       </div>
-    </div>
+    </section>
 
-    <!-- Right side: Projects -->
-    <div class="hero-projects" id="hero-projects">
-      <div class="title" id="projects-title">Past Projects</div>
-      <div class="resume-list" id="resume-list"></div>
-      <div class="empty-state" id="empty-state" style="display: none;">
-        <div class="empty-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        </div>
-        <div class="empty-title">No projects yet</div>
-        <div class="empty-sub">Upload a photo to get started with your first painting.</div>
-      </div>
-    </div>
+    <p class="footnote" role="status" aria-live="polite" id="like-status" style="position:absolute;left:-9999px"></p>
+    <p class="footnote">Your photos and paintings stay on this device. The only network request of this page is the anonymous like counter.<br>Open source (MIT) · <a href="https://github.com/dynamicdolphino/paint-by-numbers-pwa" target="_blank" rel="noopener">GitHub</a></p>
   </div>
 </section>
 
@@ -726,7 +821,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
       <span class="icon-label">Back</span>
     </button>
-    <div class="title">Paint</div>
+    <div class="title project-title">
+      <input id="project-name" type="text" maxlength="120" aria-label="Project name" autocomplete="off" spellcheck="false">
+      <span class="paint-progress" id="paint-progress"></span>
+    </div>
     <button class="icon-btn" id="toggle-template" aria-label="Toggle template" title="Show or hide the number template">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
       <span class="icon-label">Template</span>
@@ -754,6 +852,9 @@
       </button>
       <button class="icon-btn" id="tool-undo" aria-label="Undo" disabled style="opacity:0.4">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>
+      </button>
+      <button class="icon-btn" id="tool-clear" aria-label="Clear painting" title="Wipe the painting (can be undone)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
       </button>
       <div class="control-row" style="background:rgba(10,10,10,0.7);padding:8px;border-radius:12px;flex-direction:column;align-items:stretch;gap:6px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)">
         <input type="range" id="brush-size" min="2" max="40" step="1" value="14" style="width:90px">
@@ -785,8 +886,8 @@
     <h3>Print template</h3>
     <p>Choose how to get your template on paper.</p>
     <div class="opt-row">
-      <button class="btn-primary" id="print-direct">🖨️ Print</button>
-      <button class="btn-ghost" id="print-pdf">📄 Save PDF</button>
+      <button class="btn-primary" id="print-direct">Print now</button>
+      <button class="btn-ghost" id="print-pdf">Save as PDF</button>
     </div>
     <button class="btn-link" id="print-sheet-close">Cancel</button>
   </div>
@@ -863,15 +964,6 @@ async function dbPut(rec) {
     tx.onerror = () => rej(tx.error);
   });
 }
-async function dbAll() {
-  const d = await db();
-  return new Promise((res, rej) => {
-    const tx = d.transaction('projects', 'readonly');
-    const req = tx.objectStore('projects').getAll();
-    req.onsuccess = () => res(req.result || []);
-    req.onerror = () => rej(req.error);
-  });
-}
 async function dbGet(id) {
   const d = await db();
   return new Promise((res, rej) => {
@@ -909,9 +1001,10 @@ const state = {
   preset: 'standard',      // aktiver Detail-Preset (siehe PRESETS)
   zoom: 1,
   panX: 0, panY: 0,
-  undoStack: [],           // Blob[] der letzten paint-canvas Snapshots
+  undoStack: [],           // [{ x, y, data: ImageData }] — Ausschnitt vor dem jeweiligen Strich
 };
-const UNDO_MAX = 10;
+const UNDO_MAX = 30;
+const UNDO_MAX_BYTES = 96 * 1024 * 1024;
 
 // Detail-Presets ersetzen den alten DETAIL_OPTIONS-Slider.
 // minPxFactor wird an den Worker durchgereicht (mergeTiny), damit „Kids" auch
@@ -938,7 +1031,13 @@ async function loadFromFile(file) {
   const url = URL.createObjectURL(file);
   const img = new Image();
   img.src = url;
-  await img.decode();
+  try {
+    await img.decode();
+  } catch (_) {
+    URL.revokeObjectURL(url);
+    toast('Could not read this image — try JPEG or PNG', 3000);
+    return;
+  }
   // skaliere auf max. 2000 px Längsseite (Performance auf iPad)
   const MAX = 2000;
   const scale = Math.min(1, MAX / Math.max(img.width, img.height));
@@ -950,6 +1049,7 @@ async function loadFromFile(file) {
   ctx.drawImage(img, 0, 0, w, h);
   state.origDataURL = c.toDataURL('image/jpeg', 0.85);
   state.width = w; state.height = h;
+  if (state.origImageBitmap) state.origImageBitmap.close();
   state.origImageBitmap = await createImageBitmap(c);
   $('#preview-img').src = state.origDataURL;
   go('prep');
@@ -957,31 +1057,19 @@ async function loadFromFile(file) {
 }
 
 async function renderResumeList() {
-  const items = await dbAll();
+  const items = await dbListMeta();
   items.sort((a, b) => b.updatedAt - a.updatedAt);
   const wrap = $('#resume-list');
-  const heroProjects = $('#hero-projects');
-  const emptyState = $('#empty-state');
-  const projectsTitle = $('#projects-title');
-  
-  if (!items.length) {
-    if (wrap) wrap.style.display = 'none';
-    if (emptyState) emptyState.style.display = 'flex';
-    if (projectsTitle) projectsTitle.style.display = 'none';
-    wrap.innerHTML = '';
-    return;
-  }
-  
-  if (wrap) wrap.style.display = '';
-  if (emptyState) emptyState.style.display = 'none';
-  if (projectsTitle) projectsTitle.style.display = 'block';
+  // New visitors see the example and the features instead of an empty list.
+  $('#hero-projects').hidden = !items.length;
   wrap.innerHTML = '';
   
-  for (const it of items.slice(0, 6)) {
+  for (const it of items) {
     const row = document.createElement('div');
     row.className = 'resume-item';
     const img = document.createElement('img');
-    img.src = it.thumb || it.origDataURL;
+    if (it.thumb) img.src = it.thumb;
+    img.alt = '';
     const meta = document.createElement('div');
     meta.className = 'meta';
     const ago = formatAgo(Date.now() - it.updatedAt);
@@ -1005,6 +1093,7 @@ async function renderResumeList() {
     
     const del = document.createElement('button');
     del.className = 'del';
+    del.setAttribute('aria-label', 'Delete project');
     del.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
     
     let delState = 0;
@@ -1038,6 +1127,54 @@ async function renderResumeList() {
     wrap.appendChild(row);
   }
 }
+// Small JPEG for the project list — the list must not drag the 2000 px original around.
+function makeThumb(source, w, h) {
+  const scale = Math.min(1, 320 / Math.max(w, h));
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(w * scale)); c.height = Math.max(1, Math.round(h * scale));
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, c.width, c.height);
+  ctx.drawImage(source, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.8);
+}
+async function thumbFromDataURL(dataURL) {
+  const img = new Image();
+  img.src = dataURL;
+  await img.decode();
+  return makeThumb(img, img.naturalWidth, img.naturalHeight);
+}
+// Only the fields the list needs leave the cursor; projects saved before 0.10.0 get their thumb shrunk once.
+async function dbListMeta() {
+  const d = await db();
+  const legacy = [];
+  const items = await new Promise((res, rej) => {
+    const out = [];
+    const req = d.transaction('projects', 'readonly').objectStore('projects').openCursor();
+    req.onsuccess = () => {
+      const cur = req.result;
+      if (!cur) return res(out);
+      const v = cur.value;
+      const big = !v.thumb || v.thumb.length > 120000;
+      if (big) legacy.push(v.id);
+      out.push({ id: v.id, name: v.name, updatedAt: v.updatedAt, thumb: big ? null : v.thumb });
+      cur.continue();
+    };
+    req.onerror = () => rej(req.error);
+  });
+  for (const id of legacy) {
+    try {
+      const p = await dbGet(id);
+      const src = p.origDataURL || (p.templateBlob && URL.createObjectURL(p.templateBlob));
+      if (!src) continue;
+      p.thumb = await thumbFromDataURL(src);
+      if (!p.origDataURL) URL.revokeObjectURL(src);
+      await dbPut(p);
+      items.find((it) => it.id === id).thumb = p.thumb;
+    } catch (_) {}
+  }
+  return items;
+}
 function formatAgo(ms) {
   const s = Math.round(ms / 1000);
   if (s < 60) return 'just now';
@@ -1060,6 +1197,7 @@ async function resumeProject(id) {
     state.width = p.width; state.height = p.height;
     state.palette = p.palette;
     state.origDataURL = p.origDataURL;
+    if (state.templateBitmap) state.templateBitmap.close();
     state.templateBitmap = await blobToBitmap(p.templateBlob);
     state.paintBitmap = p.paintBlob ? await blobToBitmap(p.paintBlob) : null;
     go('paint');
@@ -1162,8 +1300,14 @@ self.onmessage = async (e) => {
     const minPx = Math.max(40, Math.min(8000, Math.round(w * h * factor)));
     mergeTiny(regions, regionMap, idMap, w, h, minPx);
     post('progress', { stage: 'Outlines and numbers', p: 0.85 });
-    const numbered = makeNumbering(regions, regionMap, idMap, w, h);
-    const out = render(w, h, idMap, regionMap, palette, numbered);
+    const out = render(w, h, idMap, regionMap, palette, null);
+    // Number what the user sees: fields are the areas enclosed by the drawn outlines. Labelling
+    // the ID map alone is not enough — two areas joined by a 1 px neck are one region but two
+    // visible fields (the neck is all outline), and merged same-color neighbours are the reverse.
+    const fieldIds = new Uint16Array(idMap);
+    for (let p = 0; p < fieldIds.length; p++) if (out.lineImage[p*4+3]) fieldIds[p] = OUTLINE;
+    const fields = labelRegions(fieldIds, w, h);
+    const numbered = makeNumbering(fields.regions, fields.regionMap, fieldIds, w, h);
     post('progress', { stage: 'Done', p: 1 });
     post('done', { palette: numbered.palette, paletteRGB: palette, w, h, lineImage: out.lineImage, numbers: numbered.numbers });
   } catch (err) {
@@ -1171,6 +1315,7 @@ self.onmessage = async (e) => {
   }
 };
 function post(type, payload) { self.postMessage({ type, payload }); }
+const OUTLINE = 65535; // pseudo color for outline pixels when labelling visible fields
 
 // --- color helpers ---
 function srgbToLin(c) { c /= 255; return c <= 0.04045 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); }
@@ -1195,6 +1340,20 @@ function quantize(imageData, k, onProgress) {
     const [L,a,b] = rgbToLab(data[o], data[o+1], data[o+2]);
     lab[i*3]=L; lab[i*3+1]=a; lab[i*3+2]=b;
   }
+  // Centroids are fitted on an evenly strided subsample (~250k px) — same palette,
+  // a fraction of the work on 2000 px photos. All pixels are assigned once at the end.
+  let stride = Math.max(1, Math.floor(N / 250000));
+  if (stride > 1 && w % stride === 0) stride++; // sonst trifft der Stride immer dieselben Spalten
+  const full = lab, fullN = N;
+  if (stride > 1) {
+    const M = Math.ceil(N / stride);
+    const sub = new Float32Array(M * 3);
+    for (let j = 0, i = 0; j < M; j++, i += stride) { sub[j*3]=lab[i*3]; sub[j*3+1]=lab[i*3+1]; sub[j*3+2]=lab[i*3+2]; }
+    return quantizeFit(sub, M, full, fullN, data, k, w, h, onProgress);
+  }
+  return quantizeFit(lab, N, full, fullN, data, k, w, h, onProgress);
+}
+function quantizeFit(lab, N, full, fullN, data, k, w, h, onProgress) {
   // kmeans++ init
   const cents = new Float32Array(k*3);
   const firstIdx = (Math.random()*N)|0;
@@ -1212,7 +1371,6 @@ function quantize(imageData, k, onProgress) {
     }
   }
   // Lloyd iterations
-  const idMap = new Uint16Array(N);
   const sumL = new Float64Array(k), sumA = new Float64Array(k), sumB = new Float64Array(k);
   const cnt = new Uint32Array(k);
   const ITERS = 12;
@@ -1225,7 +1383,6 @@ function quantize(imageData, k, onProgress) {
         const d = labDist2(lab, i, cents, c);
         if (d < bestD) { bestD = d; best = c; }
       }
-      idMap[i] = best;
       sumL[best] += lab[i*3]; sumA[best] += lab[i*3+1]; sumB[best] += lab[i*3+2];
       cnt[best]++;
     }
@@ -1237,6 +1394,17 @@ function quantize(imageData, k, onProgress) {
       }
     }
   }
+  // Alle Pixel den fertigen Zentren zuweisen
+  const idMap = new Uint16Array(fullN);
+  for (let i = 0; i < fullN; i++) {
+    let best = 0, bestD = Infinity;
+    for (let c = 0; c < k; c++) {
+      const d = labDist2(full, i, cents, c);
+      if (d < bestD) { bestD = d; best = c; }
+    }
+    idMap[i] = best;
+  }
+  N = fullN;
   // Final RGB-Palette als Mittel der zugewiesenen Original-Pixel
   const sumR = new Float64Array(k), sumG = new Float64Array(k), sumBb = new Float64Array(k);
   cnt.fill(0);
@@ -1321,7 +1489,7 @@ function mergeTiny(regions, regionMap, idMap, w, h, minPx) {
   // iterativ kleine Regionen verschmelzen
   let changed = true;
   let passes = 0;
-  while (changed && passes < 3) {
+  while (changed && passes < 8) {
     changed = false;
     passes++;
     for (const r of regions) {
@@ -1388,7 +1556,7 @@ function makeNumbering(regions, regionMap, idMap, w, h) {
   // gather color-IDs ranked by total pixels (so most common color = "1")
   const colorCount = new Map();
   for (const r of regions) {
-    if (r.pixels === 0) continue;
+    if (r.pixels === 0 || r.colorId === OUTLINE) continue;
     colorCount.set(r.colorId, (colorCount.get(r.colorId) || 0) + r.pixels);
   }
   const sortedColors = [...colorCount.entries()].sort((a,b) => b[1]-a[1]).map(([cid]) => cid);
@@ -1397,10 +1565,10 @@ function makeNumbering(regions, regionMap, idMap, w, h) {
   // numbers: one per region, but only for regions big enough that a legible number fits
   const numbers = [];
   for (const r of regions) {
-    if (r.pixels === 0) continue;
+    if (r.pixels === 0 || r.colorId === OUTLINE) continue;
     const place = innerPoint(r, regionMap, w, h);
     // skip if even the largest inscribed circle is too tight for the smallest legible glyph
-    if (place.radius < 5) continue;
+    if (place.radius < 3) continue;
     numbers.push({
       regionId: r.id,
       colorId: r.colorId,
@@ -1522,7 +1690,7 @@ async function finishTemplate(payload) {
   for (const n of numbers) {
     // n.cx/cy = inscribed-circle center inside the region, n.radius = its radius
     // font size is bounded so a number never grows beyond ~22 px regardless of region size
-    const sz = Math.max(9, Math.min(22, n.radius * 1.05));
+    const sz = Math.max(7, Math.min(22, n.radius * 1.05));
     tctx.font = `${Math.round(sz)}px -apple-system, sans-serif`;
     tctx.textAlign = 'center';
     tctx.textBaseline = 'middle';
@@ -1536,6 +1704,7 @@ async function finishTemplate(payload) {
 
   state.palette = finalPalette;
   state.width = w; state.height = h;
+  if (state.templateBitmap) state.templateBitmap.close();
   state.templateBitmap = await createImageBitmap(tplCanvas);
   state.paintBitmap = null;
   state.projectId = 'p_' + Date.now();
@@ -1552,7 +1721,7 @@ async function finishTemplate(payload) {
     width: w, height: h,
     palette: finalPalette,
     origDataURL: state.origDataURL,
-    thumb: state.origDataURL,
+    thumb: makeThumb(state.origImageBitmap, w, h),
     templateBlob,
     paintBlob: null,
   });
@@ -1584,10 +1753,13 @@ function setupPaint() {
   pctx.fillRect(0,0,state.width, state.height);
   if (state.paintBitmap) pctx.drawImage(state.paintBitmap, 0, 0);
 
+  if (state.paintBitmap) { state.paintBitmap.close(); state.paintBitmap = null; }
+
   buildPalette();
   bindPaintEvents();
-  state.undoStack = [];
-  updateUndoButton();
+  resetUndo();
+  $('#project-name').value = state.projectName || 'Project';
+  updateProgress();
   // fitCanvas needs the paint screen to be visible — measure on the next frame
   requestAnimationFrame(() => requestAnimationFrame(fitCanvas));
 }
@@ -1647,11 +1819,16 @@ function buildPalette() {
 }
 
 let drawState = null; // { lastX, lastY, pressure }
+let paintEventsBound = false;
 function bindPaintEvents() {
+  // setupPaint() runs for every opened project — the stage listeners must only exist once.
+  if (paintEventsBound) return;
+  paintEventsBound = true;
   const paint = $('#canvas-paint');
   const stage = $('#paint-stage');
   // Doppel-Pointer = Pan/Zoom
   const pointers = new Map();
+  let penId = null; // pointerId of the Pencil while it is down
 
   function canvasCoords(e) {
     const rect = paint.getBoundingClientRect();
@@ -1668,7 +1845,7 @@ function bindPaintEvents() {
     const immediate = e.pointerType === 'pen';
     drawState = { lastX: x, lastY: y, started: immediate };
     if (immediate) {
-      pushUndo();
+      beginUndo();
       drawDot(x, y, e.pressure || 0.5);
     }
   }
@@ -1677,7 +1854,7 @@ function bindPaintEvents() {
     const { x, y } = canvasCoords(e);
     if (!drawState.started) {
       // Only now does the user really intend to paint — snapshot for undo and commit the first dot.
-      pushUndo();
+      beginUndo();
       drawDot(drawState.lastX, drawState.lastY, e.pressure || 0.5);
       drawState.started = true;
     }
@@ -1687,39 +1864,50 @@ function bindPaintEvents() {
   function endStroke() {
     const wasStroke = drawState && drawState.started;
     drawState = null;
-    if (wasStroke) autosave();
+    if (wasStroke) { commitUndo(); autosave(); }
   }
 
   stage.addEventListener('pointerdown', (e) => {
     // Ignore pointers that originated on the floating toolbar so its buttons and
     // brush-size slider don't accidentally start strokes on the canvas.
     if (e.target.closest('.toolbar-floating')) return;
+    // Palm rejection: while the Pencil is down, touches are ignored completely —
+    // a resting hand must neither cancel the stroke nor start a pinch.
+    if (penId !== null && e.pointerType !== 'pen') return;
+    if (e.pointerType === 'pen') {
+      // Pencil wins over touches that were already down (palm first, then pen).
+      pointers.clear();
+      endGesture();
+      endStroke();
+      penId = e.pointerId;
+    }
     pointers.set(e.pointerId, e);
-    // Second (or third) pointer: cancel any active stroke and switch to pinch/pan.
+    // Second (or third) touch: cancel any active stroke and switch to pinch/pan.
     if (pointers.size >= 2) {
-      if (drawState) {
-        // If the first pointer never escalated to a real stroke, nothing was drawn
-        // and there is no undo snapshot to discard — just drop the draft.
-        drawState = null;
-      }
+      // A draft that never escalated to a real stroke drew nothing; a started one
+      // stays on the canvas, so it gets its undo entry and autosave like any stroke.
+      endStroke();
       gestureStart();
       return;
     }
-    // First pointer: start a stroke. For pen always; for touch/mouse only if no pen is already active.
-    const hasPenActive = [...pointers.values()].some((p) => p.pointerType === 'pen' && p.pointerId !== e.pointerId);
-    if (e.pointerType === 'pen' || !hasPenActive) {
-      try { stage.setPointerCapture(e.pointerId); } catch (_) {}
-      startStroke(e);
-    }
+    try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+    // Middle button or Space+drag pans on desktop.
+    if (e.pointerType === 'mouse' && (e.button === 1 || spaceDown)) { panStart(e); return; }
+    startStroke(e);
   });
   stage.addEventListener('pointermove', (e) => {
-    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, e);
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, e);
     if (pointers.size >= 2) { gestureMove(); return; }
+    if (pan) { panMove(e); return; }
     if (drawState) moveStroke(e);
   });
   function endP(e) {
+    if (!pointers.has(e.pointerId)) return;
     pointers.delete(e.pointerId);
-    if (pointers.size < 2 && drawState === null) endGesture();
+    if (e.pointerId === penId) penId = null;
+    pan = null;
+    if (pointers.size < 2) endGesture();
     if (drawState && pointers.size === 0) endStroke();
   }
   stage.addEventListener('pointerup', endP);
@@ -1727,6 +1915,18 @@ function bindPaintEvents() {
   stage.addEventListener('pointerleave', endP);
 
   // Gestures
+  // The stack is scaled around its centre C. A content point q (offset from C, unscaled)
+  // sits on screen at C + pan + zoom*q — zooming keeps the q under the focal point fixed.
+  function zoomAt(fx, fy, zoom0, panX0, panY0, fx0, fy0, zoom) {
+    const rect = $('#canvas-stack').getBoundingClientRect();
+    const cx = rect.left + rect.width / 2 - state.panX;
+    const cy = rect.top + rect.height / 2 - state.panY;
+    const qx = (fx0 - cx - panX0) / zoom0, qy = (fy0 - cy - panY0) / zoom0;
+    state.zoom = Math.max(0.2, Math.min(8, zoom));
+    state.panX = fx - cx - state.zoom * qx;
+    state.panY = fy - cy - state.zoom * qy;
+    applyTransform();
+  }
   let gs = null;
   function gestureStart() {
     const ps = [...pointers.values()];
@@ -1749,22 +1949,43 @@ function bindPaintEvents() {
     const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
     const mx = (a.clientX + b.clientX) / 2;
     const my = (a.clientY + b.clientY) / 2;
-    const z = gs.zoom0 * (d / gs.d);
-    state.zoom = Math.max(0.2, Math.min(8, z));
-    state.panX = gs.panX0 + (mx - gs.mx);
-    state.panY = gs.panY0 + (my - gs.my);
-    applyTransform();
+    zoomAt(mx, my, gs.zoom0, gs.panX0, gs.panY0, gs.mx, gs.my, gs.zoom0 * (d / (gs.d || 1)));
   }
   function endGesture() { gs = null; }
-  function penLikely() {
-    // On iPads without a Pencil: allow touch drawing for testing. On Pencil devices, prefer 'pen' only.
-    return false;
+
+  // Desktop: mouse wheel / trackpad pinch zooms at the cursor, two-finger scroll pans.
+  let pan = null;
+  function panStart(e) { pan = { x: e.clientX, y: e.clientY, panX0: state.panX, panY0: state.panY }; }
+  function panMove(e) {
+    state.panX = pan.panX0 + (e.clientX - pan.x);
+    state.panY = pan.panY0 + (e.clientY - pan.y);
+    applyTransform();
   }
+  stage.addEventListener('wheel', (e) => {
+    if (e.target.closest('.toolbar-floating')) return;
+    e.preventDefault();
+    // Trackpad pinch arrives as ctrl+wheel; a real mouse wheel as line mode or big vertical-only steps.
+    const isMouseWheel = e.deltaMode !== 0 || (e.deltaX === 0 && Math.abs(e.deltaY) >= 100);
+    if (e.ctrlKey || e.metaKey || isMouseWheel) {
+      const step = e.ctrlKey && !isMouseWheel ? 0.01 : 0.0015;
+      const factor = Math.exp(-e.deltaY * (e.deltaMode === 1 ? 0.05 : step));
+      zoomAt(e.clientX, e.clientY, state.zoom, state.panX, state.panY, e.clientX, e.clientY, state.zoom * factor);
+    } else {
+      state.panX -= e.deltaX;
+      state.panY -= e.deltaY;
+      applyTransform();
+    }
+  }, { passive: false });
+  stage.addEventListener('auxclick', (e) => e.preventDefault());
 }
+let spaceDown = false;
+window.addEventListener('keydown', (e) => { if (e.code === 'Space' && !e.target.closest('input')) spaceDown = true; });
+window.addEventListener('keyup', (e) => { if (e.code === 'Space') spaceDown = false; });
 
 function drawDot(x, y, pressure) {
   const ctx = $('#canvas-paint').getContext('2d');
   const r = baseRadius(pressure);
+  markDirty(x, y, r);
   if (state.tool === 'eraser') {
     ctx.save();
     ctx.globalCompositeOperation = 'destination-out';
@@ -1791,6 +2012,7 @@ function drawDot(x, y, pressure) {
 function drawLine(x0, y0, x1, y1, pressure) {
   const ctx = $('#canvas-paint').getContext('2d');
   const r = baseRadius(pressure);
+  markDirty(x0, y0, r); markDirty(x1, y1, r);
   if (state.tool === 'eraser') {
     ctx.save();
     ctx.globalCompositeOperation = 'destination-out';
@@ -1800,6 +2022,10 @@ function drawLine(x0, y0, x1, y1, pressure) {
     ctx.moveTo(x0, y0);
     ctx.lineTo(x1, y1);
     ctx.strokeStyle = '#000';
+    ctx.stroke();
+    // Hintergrund wieder weiß
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.strokeStyle = '#fff';
     ctx.stroke();
     ctx.restore();
     return;
@@ -1829,12 +2055,14 @@ async function doSave() {
   const p = await dbGet(state.projectId);
   if (!p) return;
   p.paintBlob = blob;
+  p.name = state.projectName || p.name; // rename goes through the same serialized write
   p.updatedAt = Date.now();
   await dbPut(p);
 }
 function autosave() {
   clearTimeout(autosaveTimer);
   autosaveTimer = setTimeout(() => {
+    updateProgress();
     savePromise = doSave().catch(() => {});
   }, 800);
 }
@@ -1863,25 +2091,103 @@ $('#brush-size').addEventListener('input', (e) => {
 });
 $('#tool-undo').addEventListener('click', undo);
 
-// ---------- Undo ----------
-function pushUndo() {
-  const canvas = $('#canvas-paint');
-  canvas.toBlob((blob) => {
-    if (!blob) return;
-    state.undoStack.push(blob);
-    while (state.undoStack.length > UNDO_MAX) state.undoStack.shift();
-    updateUndoButton();
-  }, 'image/png');
-}
-async function undo() {
-  if (state.undoStack.length === 0) return;
-  const blob = state.undoStack.pop();
-  const bmp = await createImageBitmap(blob);
+// Clear: second tap within 3 s confirms; the wipe is one undo step.
+let clearArmed = null;
+$('#tool-clear').addEventListener('click', () => {
+  const btn = $('#tool-clear');
+  if (!clearArmed) {
+    btn.classList.add('confirm');
+    toast('Tap again to clear the painting', 3000);
+    clearArmed = setTimeout(() => { clearArmed = null; btn.classList.remove('confirm'); }, 3000);
+    return;
+  }
+  clearTimeout(clearArmed); clearArmed = null;
+  btn.classList.remove('confirm');
+  beginUndo();
+  markDirty(0, 0, 0); markDirty(state.width, state.height, 0);
   const ctx = $('#canvas-paint').getContext('2d');
-  ctx.clearRect(0, 0, state.width, state.height);
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, state.width, state.height);
-  ctx.drawImage(bmp, 0, 0);
+  commitUndo();
+  autosave();
+  toast('Cleared');
+});
+
+// Rename: the header title is the input.
+$('#project-name').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === 'Escape') e.target.blur(); });
+for (const evt of ['blur', 'change']) $('#project-name').addEventListener(evt, async (e) => {
+  const name = e.target.value.trim().slice(0, 120) || state.projectName || 'Project';
+  e.target.value = name;
+  if (name === state.projectName || !state.projectId) return;
+  state.projectName = name;
+  await flushSave();
+});
+
+// Progress = share of the canvas that is no longer white, measured on a small downscale.
+function updateProgress() {
+  const W = 160, H = Math.max(1, Math.round(160 * state.height / state.width));
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage($('#canvas-paint'), 0, 0, W, H);
+  const d = ctx.getImageData(0, 0, W, H).data;
+  let painted = 0;
+  for (let i = 0; i < d.length; i += 4) if (d[i] < 250 || d[i+1] < 250 || d[i+2] < 250) painted++;
+  const pct = painted / (W * H) * 100;
+  $('#paint-progress').textContent = (painted > 0 && pct < 1 ? '< 1' : Math.round(pct)) + ' % painted';
+}
+
+// ---------- Undo ----------
+// A mirror canvas holds the painting as it was before the current stroke. At stroke end only the
+// touched rectangle is copied out of the mirror (synchronous, no PNG encode), then the mirror catches up.
+let undoMirror = null;   // canvas
+let strokeDirty = null;  // [x0, y0, x1, y1] of the running stroke
+let undoBytes = 0;
+function resetUndo() {
+  undoMirror = document.createElement('canvas');
+  undoMirror.width = state.width; undoMirror.height = state.height;
+  undoMirror.getContext('2d', { willReadFrequently: true }).drawImage($('#canvas-paint'), 0, 0);
+  state.undoStack = [];
+  undoBytes = 0;
+  strokeDirty = null;
+  updateUndoButton();
+}
+function beginUndo() { strokeDirty = null; }
+function markDirty(x, y, r) {
+  r += 2;
+  if (!strokeDirty) strokeDirty = [x - r, y - r, x + r, y + r];
+  else {
+    if (x - r < strokeDirty[0]) strokeDirty[0] = x - r;
+    if (y - r < strokeDirty[1]) strokeDirty[1] = y - r;
+    if (x + r > strokeDirty[2]) strokeDirty[2] = x + r;
+    if (y + r > strokeDirty[3]) strokeDirty[3] = y + r;
+  }
+}
+function commitUndo() {
+  if (!strokeDirty || !undoMirror) return;
+  const x = Math.max(0, Math.floor(strokeDirty[0])), y = Math.max(0, Math.floor(strokeDirty[1]));
+  const w = Math.min(state.width, Math.ceil(strokeDirty[2])) - x;
+  const h = Math.min(state.height, Math.ceil(strokeDirty[3])) - y;
+  strokeDirty = null;
+  if (w <= 0 || h <= 0) return;
+  const mctx = undoMirror.getContext('2d', { willReadFrequently: true });
+  state.undoStack.push({ x, y, data: mctx.getImageData(x, y, w, h) });
+  undoBytes += w * h * 4;
+  // Full-canvas strokes are 16 MB each at 2000 px — cap by bytes as well as by count.
+  while (state.undoStack.length > UNDO_MAX || (undoBytes > UNDO_MAX_BYTES && state.undoStack.length > 1)) {
+    const old = state.undoStack.shift();
+    undoBytes -= old.data.width * old.data.height * 4;
+  }
+  mctx.clearRect(x, y, w, h);
+  mctx.drawImage($('#canvas-paint'), x, y, w, h, x, y, w, h);
+  updateUndoButton();
+}
+function undo() {
+  const entry = state.undoStack.pop();
+  if (!entry) return;
+  undoBytes -= entry.data.width * entry.data.height * 4;
+  $('#canvas-paint').getContext('2d').putImageData(entry.data, entry.x, entry.y);
+  undoMirror.getContext('2d', { willReadFrequently: true }).putImageData(entry.data, entry.x, entry.y);
   updateUndoButton();
   autosave();
 }
@@ -1939,7 +2245,13 @@ $('#print-direct').addEventListener('click', () => {
   state.palette.forEach(p => {
     const el = document.createElement('div');
     el.className = 'print-swatch';
-    el.innerHTML = `<div class="color-box" style="background: rgb(${p.r},${p.g},${p.b})"></div><span>${p.nr}</span>`;
+    const box = document.createElement('div');
+    box.className = 'color-box';
+    box.style.background = rgbToHex(p.r, p.g, p.b);
+    const nr = document.createElement('span');
+    nr.textContent = p.nr;
+    el.appendChild(box);
+    el.appendChild(nr);
     legend.appendChild(el);
   });
 
@@ -2148,6 +2460,8 @@ function backupProject() {
    ------------------------------------------------------------------ */
 
 const PDF_LIB_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';
+// Hash as published by api.cdnjs.com for 1.17.1 — must be updated together with the version.
+const PDF_LIB_SRI = 'sha512-z8IYLHO8bTgFqj+yrPyIJnzBDf7DDhWwiEsk4sY+Oe6J2M+WQequeGS7qioI5vT6rXgVRb4K1UVQC5ER7MKzKQ==';
 
 function loadScript(src, integrity) {
   return new Promise((resolve, reject) => {
@@ -2194,7 +2508,7 @@ async function exportPDF() {
   toast('Generating PDF…', 60000);
 
   try {
-    if (!window.PDFLib) await loadScript(PDF_LIB_CDN);
+    if (!window.PDFLib) await loadScript(PDF_LIB_CDN, PDF_LIB_SRI);
     if (!window.PDFLib) throw new Error('pdf-lib unavailable (offline?)');
 
     const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
@@ -2317,19 +2631,31 @@ async function importProject(file) {
   try { data = JSON.parse(text); }
   catch (_) { throw new Error('Invalid backup file (not JSON)'); }
   if (!data || data.format !== 'paint-by-numbers-pwa') throw new Error('Not a valid backup file');
+  const width = Math.round(Number(data.width)), height = Math.round(Number(data.height));
+  if (!(width > 0 && width <= 4096 && height > 0 && height <= 4096)) throw new Error('Invalid image size in backup');
+  const isImg = (u) => typeof u === 'string' && /^data:image\/(png|jpeg);base64,/.test(u);
+  if (!isImg(data.templateDataURL)) throw new Error('Backup has no template');
+  if (data.paintDataURL && !isImg(data.paintDataURL)) throw new Error('Invalid painting in backup');
+  if (!Array.isArray(data.palette) || !data.palette.length || data.palette.length > 256) throw new Error('Invalid palette in backup');
+  // Rebuild every palette entry from numbers only — nothing from the file reaches the DOM as markup.
+  const byte = (v) => Math.max(0, Math.min(255, Math.round(Number(v)) || 0));
+  const palette = data.palette.map((p, i) => {
+    const r = byte(p && p.r), g = byte(p && p.g), b = byte(p && p.b);
+    return { nr: i + 1, colorId: i, r, g, b, hex: rgbToHex(r, g, b) };
+  });
+  const origDataURL = isImg(data.origDataURL) ? data.origDataURL : null;
   const tplBlob = data.templateDataURL ? await dataURLToBlob(data.templateDataURL) : null;
   const paintBlob = data.paintDataURL ? await dataURLToBlob(data.paintDataURL) : null;
   const newId = 'p_' + Date.now();
   await dbPut({
     id: newId,
-    name: data.name || 'Imported project',
-    createdAt: data.createdAt || Date.now(),
+    name: String(data.name || 'Imported project').slice(0, 120),
+    createdAt: Number(data.createdAt) || Date.now(),
     updatedAt: Date.now(),
-    width: data.width,
-    height: data.height,
-    palette: data.palette,
-    origDataURL: data.origDataURL,
-    thumb: data.origDataURL,
+    width, height,
+    palette,
+    origDataURL,
+    thumb: await thumbFromDataURL(origDataURL || data.templateDataURL),
     templateBlob: tplBlob,
     paintBlob: paintBlob,
   });
@@ -2433,61 +2759,82 @@ $('#tutorial-next').addEventListener('click', () => {
   }
 });
 
-// ---------- Like Button ----------
-let likes = 12431;
-let hasLiked = localStorage.getItem('hasLiked') === 'true';
-
-function formatLikes(num) {
-  return num > 999 ? (num / 1000).toFixed(1) + 'k' : num;
-}
-
-const likeBtn = $('#like-btn');
-const likeCount = $('#like-count');
-if (likeBtn && likeCount) {
-  if (hasLiked) {
-    likes++;
-    likeBtn.classList.add('liked');
+// ---------- Landing: example, compare slider, like, coffee ----------
+$('#try-example').addEventListener('click', async () => {
+  const btn = $('#try-example');
+  btn.disabled = true;
+  try {
+    const res = await fetch('example.jpg');
+    if (!res.ok) throw new Error(res.status);
+    await loadFromFile(new File([await res.blob()], 'example.jpg', { type: 'image/jpeg' }));
+    selectPreset('easy');
+  } catch (_) {
+    toast('Example not available offline yet', 3000);
+  } finally {
+    btn.disabled = false;
   }
-  likeCount.textContent = formatLikes(likes);
+});
+$('#compare-range').addEventListener('input', (e) => {
+  $('#compare').style.setProperty('--pos', e.target.value + '%');
+});
 
-  likeBtn.addEventListener('click', () => {
-    if (hasLiked) {
-      hasLiked = false;
-      likes--;
-      likeBtn.classList.remove('liked');
-      localStorage.setItem('hasLiked', 'false');
-    } else {
-      hasLiked = true;
-      likes++;
-      likeBtn.classList.add('liked');
-      localStorage.setItem('hasLiked', 'true');
-      
-      // Floating hearts effect
-      for(let i=0; i<3; i++) {
-        setTimeout(() => {
-          const heart = document.createElement('div');
-          heart.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="var(--accent)" stroke="var(--accent)" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>';
-          heart.style.position = 'absolute';
-          const rect = likeBtn.getBoundingClientRect();
-          heart.style.left = (rect.left + rect.width / 2 - 10 + (Math.random()*20-10)) + 'px';
-          heart.style.top = (rect.top - 10) + 'px';
-          heart.style.pointerEvents = 'none';
-          heart.style.zIndex = '9999';
-          heart.style.transition = 'all 1s ease-out';
-          document.body.appendChild(heart);
-          
-          requestAnimationFrame(() => {
-            heart.style.transform = `translateY(-50px) scale(1.5) rotate(${Math.random()*20-10}deg)`;
-            heart.style.opacity = '0';
-          });
-          
-          setTimeout(() => document.body.removeChild(heart), 1000);
-        }, i * 150);
-      }
+// TODO(owner): replace with the real profile, e.g. https://buymeacoffee.com/<name>
+const BMC_URL = 'https://buymeacoffee.com/';
+for (const a of document.querySelectorAll('[data-coffee]')) a.href = BMC_URL;
+
+// Likes: a public hit counter (abacus) holds the real number; LIKE_BASE is the owner's chosen
+// starting offset. One hit per browser — un-liking only changes the local state.
+const LIKE_API = 'https://abacus.jasoncameron.dev';
+const LIKE_KEY = 'paint-by-numbers-pwa/likes';
+const LIKE_BASE = 34;
+const likeStore = {
+  get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (_) {} },
+};
+let likeServer = Number(likeStore.get('likeCount')) || 0;
+let liked = likeStore.get('hasLiked') === 'true';
+function renderLikes() {
+  const sent = likeStore.get('likeSent') === 'true';
+  const n = LIKE_BASE + likeServer + (liked && !sent ? 1 : 0) - (!liked && sent ? 1 : 0);
+  for (const el of document.querySelectorAll('[data-like-count]')) el.textContent = n.toLocaleString('en-US');
+  for (const b of document.querySelectorAll('[data-like]')) b.setAttribute('aria-pressed', String(liked));
+}
+async function likeFetch(path) {
+  const res = await fetch(`${LIKE_API}/${path}/${LIKE_KEY}`, { referrerPolicy: 'no-referrer' });
+  if (!res.ok) throw new Error(res.status);
+  return Math.max(0, Number((await res.json()).value) || 0); // `info` answers -1 while nobody liked yet
+}
+function setLikeServer(v) { likeServer = v; likeStore.set('likeCount', String(v)); renderLikes(); }
+renderLikes();
+likeFetch('info').then(setLikeServer).catch(() => {});
+for (const b of document.querySelectorAll('[data-like]')) {
+  b.addEventListener('click', async () => {
+    liked = !liked;
+    likeStore.set('hasLiked', String(liked));
+    renderLikes();
+    $('#like-status').textContent = liked ? 'Thanks for the like!' : 'Like removed';
+    if (liked) toast('Thank you!');
+    if (liked && likeStore.get('likeSent') !== 'true') {
+      try { const v = await likeFetch('hit'); likeStore.set('likeSent', 'true'); setLikeServer(v); } catch (_) {}
     }
-    likeCount.textContent = formatLikes(likes);
   });
 }
+
+// Modals: Escape and a tap on the backdrop close, focus moves into the dialog when it opens.
+const modalClosers = { 'save-sheet': '#save-sheet-close', 'print-sheet': '#print-sheet-close', 'tutorial': '#tutorial-skip' };
+for (const id in modalClosers) {
+  const el = document.getElementById(id);
+  el.addEventListener('click', (e) => { if (e.target === el) $(modalClosers[id]).click(); });
+  new MutationObserver(() => {
+    if (el.classList.contains('active')) { const b = el.querySelector('button'); if (b) b.focus(); }
+  }).observe(el, { attributes: true, attributeFilter: ['class'] });
+}
+window.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  for (const id in modalClosers) {
+    if (document.getElementById(id).classList.contains('active')) { $(modalClosers[id]).click(); return; }
+  }
+});
 
 // Init
 renderPresetPills();

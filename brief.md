@@ -3,53 +3,53 @@
 ## Project Overview
 
 - **Name:** paint-by-numbers-pwa
-- **Type:** Tool (Web-App / PWA)
+- **Type:** Tool (web app / PWA)
 - **Status:** In Progress
 - **Start Date:** 2026-05-16
-- **Target Date:** offen
-- **Repo:** [github.com/dynamicdolphino/paint-by-numbers-pwa](https://github.com/dynamicdolphino/paint-by-numbers-pwa) (public, wegen GitHub Pages)
+- **Target Date:** open
+- **Repo:** [github.com/dynamicdolphino/paint-by-numbers-pwa](https://github.com/dynamicdolphino/paint-by-numbers-pwa) (public, for GitHub Pages)
 - **Live URL:** [dynamicdolphino.github.io/paint-by-numbers-pwa/](https://dynamicdolphino.github.io/paint-by-numbers-pwa/)
 
 ## Problem
 
-Es gibt zwar Malen-nach-Zahlen-Apps für iPad, aber keine, die aus einem **eigenen Foto** sofort eine Vorlage erzeugt, ohne dass man Daten an einen fremden Anbieter hochladen muss. Außerdem will Michael nicht für jede neue Idee eine zusätzliche App installieren.
+There are paint-by-numbers apps for iPad, but none that instantly turns your **own photo** into a template without uploading data to a third-party provider. Michael also doesn't want to install a separate app for every new idea.
 
 ## Solution
 
-Eine Single-File-Web-App, die im Safari auf dem iPad läuft und alles lokal macht: Foto rein, k-Means-Quantisierung im Browser, Konturen + Nummern aufs Bild, Mal-Canvas mit Apple-Pencil-Support. „Zum Home-Bildschirm" macht daraus eine echte App ohne App-Store-Umweg.
+A single-file web app that runs in Safari on the iPad and does everything locally: photo in, k-means quantization in the browser, outlines + numbers drawn onto the image, paint canvas with Apple Pencil support. "Add to Home Screen" turns it into a real app without an App Store detour.
 
 ## Target Audience
 
-Erstmal Michael selbst. Weil das Repo public ist, kann jeder es nutzen — aber nicht der primäre Use Case.
+Primarily Michael himself. Since the repo is public, anyone can use it — but that's not the primary use case.
 
 ## Success Criteria
 
-- [x] Aus einem iPad-Foto wird eine nummerierte Mal-Vorlage erzeugt
-- [x] Mit Pencil malbar, mit Touch zoom-/pan-bar
-- [x] Auto-Save in IndexedDB, Projekt-Liste auf Start-Screen
-- [x] Backup-Export als `.pbn.json`, Import zur Wiederherstellung
-- [x] Undo (10 Schritte)
-- [x] Live über GitHub Pages erreichbar, PWA-installierbar
-- [x] Nice-to-have: Druck-Export der reinen Vorlage als PDF
-- [ ] Nice-to-have: mehrere Pinselformen, härtere Pencil-Druckstufen
+- [x] A numbered paint template is generated from an iPad photo
+- [x] Paintable with Pencil, zoomable/pannable with touch
+- [x] Auto-save to IndexedDB, project list on the start screen
+- [x] Backup export as `.pbn.json`, import for restoring
+- [x] Undo (10 steps)
+- [x] Live via GitHub Pages, installable as a PWA
+- [x] Nice-to-have: print export of the plain template as a PDF
+- [ ] Nice-to-have: multiple brush shapes, finer pencil-pressure levels
 
 ## Tech Stack / Tools
 
-- HTML + CSS + Vanilla JavaScript (eine `index.html` mit allem inline)
-- Web Worker für die Bildverarbeitung (k-Means in LAB, Connected-Components, Marching-Squares-ähnliche Edge-Extraktion, Inscribed-Circle für Zahlen-Positionen)
-- IndexedDB für Projekt-Persistenz, `navigator.storage.persist()` gegen Eviction
-- Service Worker für Offline + Cache-Versionierung
-- PointerEvents API für Pencil-Druck + Pinch/Zoom
-- `navigator.share()` für Backup-Export (iOS-PWA-tauglich), Fallback auf `<a download>`
+- HTML + CSS + vanilla JavaScript (a single `index.html` with everything inline)
+- Web Worker for image processing (k-means in LAB, connected components, raster edge-mask outline extraction, inscribed-circle number placement)
+- IndexedDB for project persistence, `navigator.storage.persist()` against eviction
+- Service Worker for offline support + cache versioning
+- PointerEvents API for pencil pressure + pinch/zoom
+- `navigator.share()` for backup export (iOS-PWA-capable), falling back to `<a download>`
 
 ## Anti-Goals
 
-- Kein Cloud-Sync, keine Konten, kein Server (Privacy-Default)
-- Kein Region-Clipping beim Malen (User wollte frei malen können)
-- Keine zusätzlichen Libraries — alles handgeschrieben für saubere `git diff`s
+- No cloud sync, no accounts, no server (privacy by default)
+- No region clipping while painting (the user wanted to paint freely)
+- No additional libraries beyond one deliberate exception: pdf-lib, loaded on demand only for PDF export — everything else is hand-written for clean `git diff`s
 
 ## References & Inspiration
 
-- Klassische Paint-by-Numbers-Apps (Pigment, Recolor) — als Funktionsspiegel, nicht als Codebasis
-- antigravity-portfolio-prompt.md im Workspace für die Farbpalette des UI
-- stimmen-profil.md für die UX-Texte
+- Classic paint-by-numbers apps (Pigment, Recolor) — as a feature mirror, not as a code base
+- antigravity-portfolio-prompt.md in the workspace for the UI color palette
+- stimmen-profil.md for the UX copy

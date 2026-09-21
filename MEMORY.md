@@ -1,202 +1,227 @@
 # MEMORY.md — Paint by Numbers PWA
 
-> Chronologisches Logbuch des Projekts.
-> Neuere Einträge unten — entlang der Implementierungsreihenfolge.
+> Chronological log of the project.
+> Newer entries at the bottom — following implementation order.
 
-**Format pro Eintrag:**
+**Format per entry:**
 
 ```
-## YYYY-MM-DD — Kurztitel
-**Kontext:** Situation
-**Entscheidung / Erkenntnis:** Was
-**Begründung:** Warum
-**Auswirkung:** Konsequenz für künftige Arbeit
+## YYYY-MM-DD — Short title
+**Context:** Situation
+**Decision / Insight:** What
+**Rationale:** Why
+**Impact:** Consequence for future work
 ```
 
 ---
 
-## 2026-05-16 — Web-App statt nativ
+## 2026-05-16 — Web app instead of native
 
-**Kontext:** Michael wollte eine Malen-nach-Zahlen-Lösung für iPad + Apple Pencil aus eigenen Fotos, ohne fremde App und ohne sich Xcode-/Mac-Setup zumuten zu wollen.
+**Context:** Michael wanted a paint-by-numbers solution for iPad + Apple Pencil built from his own photos, without a third-party app and without wanting to deal with Xcode/Mac setup.
 
-**Entscheidung:** Single-File-PWA (HTML/CSS/JS) statt nativer Swift-App. Hosting über GitHub Pages.
+**Decision:** Single-file PWA (HTML/CSS/JS) instead of a native Swift app. Hosted via GitHub Pages.
 
-**Begründung:** Kein Mac mit Xcode nötig, kein Apple Developer Account ($99/Jahr), keine 7-Tage-Re-Sign-Pflicht. Pencil-Support über PointerEvents API ist seit iPadOS 13.4 stabil. Wenn jemals Performance-/Hover-Features fehlen, ist der Sprung zu nativ später möglich, weil die Vorlagen-Logik (SVG / JSON-Palette) portabel bleibt.
+**Rationale:** No Mac with Xcode needed, no Apple Developer account ($99/year), no 7-day re-sign requirement. Pencil support via the PointerEvents API has been stable since iPadOS 13.4. If performance/hover features are ever missing, a later jump to native remains possible because the template logic (SVG / JSON palette) stays portable.
 
-**Auswirkung:** Repo muss public sein (Pages auf Free-Tier braucht public). Service Worker + IndexedDB für Offline-Persistenz statt App-Store-Lokalspeicher.
-
----
-
-## 2026-05-16 — „Frei malen" statt Region-Clipping
-
-**Kontext:** Drei Verhaltens-Optionen für die Pencil-Striche: (1) strikt — Strich nur in passender Region, (2) mild — alle Striche werden gezeichnet, Region zählt nur als „fertig" wenn richtige Farbe dominiert, (3) frei — Vorlage ist nur Hilfe.
-
-**Entscheidung:** Option 3 (frei malen).
-
-**Begründung:** Größere Mal-Freiheit, deutlich einfachere Implementation (kein Per-Region-Clipping, keine Echtzeit-Farbprüfung), näher an „echtem" Malen. Wenn der User-Wunsch nach Strenge irgendwann kommt, kann das später als Switch ergänzt werden.
-
-**Auswirkung:** Vorlage ist ein einziger Bildlayer mit Linien + Zahlen über dem Mal-Canvas, kein per-Region-Mask-System.
+**Impact:** The repo must be public (Pages on the free tier requires public). Service Worker + IndexedDB for offline persistence instead of App Store local storage.
 
 ---
 
-## 2026-05-16 — k-Means in LAB statt RGB
+## 2026-05-16 — "Free painting" instead of region clipping
 
-**Kontext:** Farbquantisierung muss perzeptuell passen, sonst clustert es z.B. Himmel und Hauttöne falsch zusammen.
+**Context:** Three behavior options for the pencil strokes: (1) strict — stroke only inside the matching region, (2) mild — all strokes are drawn, a region only counts as "done" once the right color dominates, (3) free — the template is only a guide.
 
-**Entscheidung:** k-Means im CIE-LAB-Farbraum, k++ Initialisierung, 12 Lloyd-Iterationen.
+**Decision:** Option 3 (free painting).
 
-**Begründung:** LAB-Distanzen entsprechen viel besser dem menschlichen Farbempfinden als RGB. k++ verhindert die häufigste Klasse von schlechten Cluster-Initialisierungen.
+**Rationale:** Greater painting freedom, significantly simpler implementation (no per-region clipping, no real-time color checking), closer to "real" painting. If demand for stricter behavior comes up later, it can be added as a switch.
 
-**Auswirkung:** Pipeline-Schritt 1. Output ist eine ID-Map (pro Pixel: Cluster-Index) plus eine RGB-Palette (Mittelwert pro Cluster im Originalfarbraum).
-
----
-
-## 2026-05-16 — Zahl-Positionierung über Inscribed Circle
-
-**Kontext:** Erste Implementierung setzte Zahlen ins bbox-Zentrum jeder Region. Bei konkaven (L-förmigen) oder schmalen Regionen landeten Zahlen außerhalb des sichtbaren Felds. Außerdem skalierte die Schriftgröße mit der Bounding-Box, was bei großen Regionen riesige Zahlen ergab, die andere überlagerten.
-
-**Entscheidung:** Pro Region wird der inscribed-circle-Mittelpunkt approximativ ermittelt (Distance-to-edge in 4 Achsen, gesampled auf einem dichten Grid). Schriftgröße = `clamp(9, 22, radius * 1.05)`.
-
-**Begründung:** Position liegt garantiert innerhalb der Region (egal welche Form). Schriftgröße ist nach oben gecappt, sodass keine Zahl visuell andere überlagert.
-
-**Auswirkung:** Code in `makeNumbering` + `innerPoint`. Verifiziert mit synthetischem L-Test (Zahl liegt im L-Schenkel statt im leeren bbox-Mittel).
+**Impact:** The template is a single image layer with lines + numbers over the paint canvas, no per-region mask system.
 
 ---
 
-## 2026-05-16 — Touch-Strokes deferred, Pen sofort
+## 2026-05-16 — k-means in LAB instead of RGB
 
-**Kontext:** Beim 2-Finger-Zoom zeichnete der erste Finger einen Mini-Klecks, bevor die App den zweiten Pointer als Pinch erkannte. Bei Toolbar-Slidern (Pinselgröße) lief der pointerdown durch zur Canvas.
+**Context:** Color quantization has to match human perception, otherwise it clusters e.g. sky and skin tones together incorrectly.
 
-**Entscheidung:** Pen-Strokes starten sofort. Touch-/Maus-Strokes warten auf den ersten `pointermove`-Event — ohne Bewegung kein Punkt. Toolbar-Container fängt eigene pointerdowns ab (early return im Canvas-Handler).
+**Decision:** k-means in the CIE-LAB color space, k++ initialization, 12 Lloyd iterations.
 
-**Begründung:** Pencil hat per Definition Mal-Intent (kein „Aus Versehen aufgesetzt"). Touch dagegen ist mehrdeutig — erst eine echte Bewegung signalisiert Mal-Intent.
+**Rationale:** LAB distances match human color perception far better than RGB. k++ prevents the most common class of bad cluster initializations.
 
-**Auswirkung:** Klecks-freier Zoom-Start. Slider funktionieren ohne Strich-Artefakte.
+**Impact:** Pipeline step 1. Output is an ID map (per pixel: cluster index) plus an RGB palette (mean per cluster in the original color space).
+
+---
+
+## 2026-05-16 — Number placement via inscribed circle
+
+**Context:** The first implementation placed numbers at the bounding-box center of each region. For concave (L-shaped) or narrow regions, numbers ended up outside the visible field. Font size also scaled with the bounding box, producing huge numbers on large regions that overlapped others.
+
+**Decision:** Per region, approximate the inscribed-circle center (distance to edge along 4 axes, sampled on a dense grid). Font size = `clamp(9, 22, radius * 1.05)`.
+
+**Rationale:** The position is guaranteed to lie inside the region regardless of shape. Font size is capped so no number visually overlaps others.
+
+**Impact:** Code in `makeNumbering` + `innerPoint`. Verified with a synthetic L-shape test (number lands in the L's leg instead of the empty bbox center).
+
+---
+
+## 2026-05-16 — Touch strokes deferred, pen immediate
+
+**Context:** During 2-finger zoom, the first finger drew a tiny blob before the app recognized the second pointer as a pinch. On toolbar sliders (brush size), the pointerdown passed through to the canvas.
+
+**Decision:** Pen strokes start immediately. Touch/mouse strokes wait for the first `pointermove` event — no point without movement. The toolbar container intercepts its own pointerdowns (early return in the canvas handler).
+
+**Rationale:** Pencil by definition signals paint intent (no "accidentally touched down"). Touch, on the other hand, is ambiguous — only real movement signals paint intent.
+
+**Impact:** Blob-free zoom start. Sliders work without stroke artifacts.
 
 ---
 
 ## 2026-05-16 — Backup via Web Share API
 
-**Kontext:** iOS Safari im PWA-Standalone-Modus ignoriert `<a download>` — Backup wurde gar nicht gespeichert.
+**Context:** iOS Safari in standalone PWA mode ignores `<a download>` — the backup was never actually saved.
 
-**Entscheidung:** Primärer Pfad ist `navigator.share()` mit File-Anhang (öffnet iOS-Sharesheet → „In Dateien sichern" / AirDrop / Mail). Fallback `<a download>` für Desktop-Browser.
+**Decision:** The primary path is `navigator.share()` with a file attachment (opens the iOS share sheet → "Save to Files" / AirDrop / Mail). Fallback is `<a download>` for desktop browsers.
 
-**Begründung:** Native iOS-UX, kein eigenes Sharesheet bauen, funktioniert auch wenn die App vom Home-Bildschirm gestartet wurde.
+**Rationale:** Native iOS UX, no need to build a custom share sheet, works even when the app was launched from the home screen.
 
-**Auswirkung:** Backup-Button zeigt jetzt das System-Sharesheet. Import bleibt klassischer File-Input.
-
----
-
-## 2026-05-16 — flushSave gegen Race-Condition beim Verlassen
-
-**Kontext:** Auto-Save war debounced auf 800 ms. Wer schnell „Zurück" → „Open" tippte, las das Projekt aus IndexedDB bevor der Save fertig war — Blob fehlte, `createImageBitmap` schlug fehl, Projekt war nicht öffenbar.
-
-**Entscheidung:** Beim Verlassen wird der Save flushed (Timer abgebrochen, Save synchron ausgeführt, await auf Completion). Erst dann Screen-Wechsel und ResumeList-Render.
-
-**Begründung:** Verhindert die Race-Condition komplett. Kostet im schlimmsten Fall ~200 ms Wartezeit beim Zurück-Tippen.
-
-**Auswirkung:** Projekte sind nach „Zurück" garantiert vollständig persistiert. `resumeProject` fängt zusätzlich Errors ab und zeigt Toast, falls doch mal etwas fehlt.
+**Impact:** The backup button now shows the system share sheet. Import stays a classic file input.
 
 ---
 
-## 2026-05-16 — Projekt-Name mit Datum + Uhrzeit
+## 2026-05-16 — flushSave against a race condition on exit
 
-**Kontext:** Zwei Projekte am gleichen Tag hatten den gleichen Anzeigenamen („Project 5/16/2026") und damit den gleichen Backup-Dateinamen.
+**Context:** Auto-save was debounced to 800 ms. Anyone who quickly tapped "Back" → "Open" would read the project from IndexedDB before the save had finished — the blob was missing, `createImageBitmap` failed, and the project couldn't be opened.
 
-**Entscheidung:** Projektname enthält Datum + Stunden:Minuten im ISO-Stil (`Project 2026-05-16 18:47`).
+**Decision:** On exit, the save is flushed (timer cancelled, save run synchronously, awaited to completion). Only then does the screen change and the resume list render.
 
-**Begründung:** Eindeutig pro Minute, sortierbar als String, dateinamen-sicher (Sanitizing der Backup-Files macht aus `:` und Spaces sowieso `-`).
+**Rationale:** Eliminates the race condition entirely. Costs at most ~200 ms of wait time when tapping back.
 
-**Auswirkung:** Mehrere Projekte am selben Tag sind sauber unterscheidbar in Projekt-Liste und in Backup-Dateinamen.
-
----
-
-## 2026-05-17 — iOS Web-Share braucht synchronen User-Gesture-Kontext
-
-**Kontext:** Michael berichtete dass das Backup-Speichern auf dem iPad „oft nicht" funktioniert — Klick auf den Backup-Button und visuell passierte einfach nichts. Reproduzierbar im PWA-Standalone-Modus (Home-Bildschirm), nicht im normalen Safari-Tab.
-
-**Entscheidung / Erkenntnis:** Der bisherige `backupProject()` lief `await flushSave()` → `await dbGet()` → `await blobToBase64()` vor `navigator.share()`. iOS-Safari verfällt das User-Gesture-Token nach dem ersten `await`. Beim Aufruf von `share()` ist es weg, der Call rejected silent, und der `<a download>`-Fallback wird im PWA-Standalone von iOS komplett ignoriert. Net result: Klick → nichts.
-
-Fix: Backup-Payload jetzt **vollständig synchron** aus `state.*` bauen (`canvas.toDataURL()` ist sync, eigene `dataURLToBlobSync()` parst Base64 selbst). `navigator.share()` läuft im selben Gesture. Wenn das trotzdem rejected oder nicht verfügbar ist, öffnet sich ein sichtbares Modal — dessen Buttons sind neue Gestures und können noch share/window.open. Damit der Backup nicht auf `dbGet()` warten muss, wurden `state.projectName` und `state.projectCreatedAt` ins State-Objekt gespiegelt.
-
-**Begründung:** Der gleiche Bug existierte auch im `#save-btn` (toBlob-Callback ist async), wurde nur seltener bemerkt weil weniger benutzt — gleich mitgefixt. Beide nutzen jetzt denselben `openSaveSheet()`-Fallback, also einheitliches UX-Pattern.
-
-**Auswirkung:** Backup und Image-Save funktionieren jetzt in iOS-PWA-Standalone zuverlässig. Architektur-Lehre für die ganze Codebase: Vor jedem `navigator.share()` darf kein `await` stehen. Bei neuen Share-/Download-Buttons immer das Modal-Pattern verwenden, das gibt einen sichtbaren Recovery-Pfad wenn iOS doch mal die erste Share-Anfrage ablehnt.
+**Impact:** Projects are guaranteed to be fully persisted after "Back". `resumeProject` additionally catches errors and shows a toast if something is still missing.
 
 ---
 
-## 2026-05-17 — Slider raus, Preset-Pills rein
+## 2026-05-16 — Project name with date + time
 
-**Kontext:** Der `<input type="range">` mit den 4 numerischen Stufen 12/24/36/50 zwang den User zu einer Zahl-Entscheidung ohne Bedeutung. Auf Touch unangenehm präzise zu treffen.
+**Context:** Two projects created on the same day had the same display name ("Project 5/16/2026") and thus the same backup file name.
 
-**Entscheidung:** Ersetzt durch fünf Preset-Cards (Kids/Easy/Standard/Detailed/Fine) mit Label + Farbenzahl + Hinweistext. Plus `minPxFactor` pro Preset — „Kids" hat jetzt nicht nur weniger Farben sondern auch wirklich gröbere Felder (vorher: gleicher fester Threshold im Worker).
+**Decision:** The project name includes date + hour:minute in ISO style (`Project 2026-05-16 18:47`).
 
-**Begründung:** Presets übersetzen die K-Zahl in Intent („Für Kinder" statt „8 Farben"). Card-Auswahl ist auf Touch zielsicher, kommuniziert die Auswahl klarer, und schafft Platz für den `hint`-Text. Mit dem neuen Cap von 8000 px im Worker können Kids-Presets auf hochauflösenden Fotos auch wirklich große Flächen mergen.
+**Rationale:** Unique per minute, sortable as a string, filename-safe (sanitizing of backup files turns `:` and spaces into `-` anyway).
 
-**Auswirkung:** `state.preset` ersetzt den Slider-Wert, `generateTemplate(k, minPxFactor)` bekommt beide Parameter, Worker-`mergeTiny` nutzt den durchgereichten Faktor. Default ist „Standard" (24) — bewusst eine Stufe niedriger als der bisherige Default-Slider (36), weil 24 für die meisten Fotos der bessere Startpunkt ist.
-
----
-
-## 2026-05-17 — Text-Labels unter Icons für neue User
-
-**Kontext:** Vier Icon-Buttons im Paint-Header ohne sichtbaren Text. Erfahrene User raten richtig, neue User wissen nicht was hinter „Auge", „Truhe", „Pfeil-runter" steckt — selbst mit `title=`-Attribut, weil das auf Touch nicht erscheint.
-
-**Entscheidung:** Kleines `<span class="icon-label">` unter jedem Header-Icon (`Back`, `Template`, `Backup`, `Save`). 10 px, dim-Farbe, im Active-State accent. Header wird dadurch ~10 px höher — vernachlässigbar.
-
-**Begründung:** Einfacher als eine First-Launch-Tour, kein State zu verwalten, funktioniert offline, sofort verständlich für Erstöffner. Im Floating-Toolbar (Brush/Eraser/Undo) bleiben die Labels weg, weil die Icons dort universeller sind und der Platz knapp ist.
-
-**Auswirkung:** Header-CSS scoped per `.paint-header .icon-btn` und `.prep-header .icon-btn`, damit der Floating-Toolbar-Look unverändert bleibt.
+**Impact:** Multiple projects on the same day are now cleanly distinguishable in the project list and in backup file names.
 
 ---
 
-## 2026-05-18 — Druck-PDF via pdf-lib, on-demand geladen
+## 2026-05-17 — iOS Web Share needs a synchronous user-gesture context
 
-**Kontext:** Druck-PDF war als nächstes Item im BACKLOG. Anforderung: Seite 1 nummerierte Vorlage druckfertig auf A4, Seite 2 Farb-Legende. Funktionieren muss es auf iPad-PWA (Standalone-Modus) — also wieder die iOS-Share-Gesture-Falle.
+**Context:** Michael reported that saving a backup on the iPad "often doesn't work" — tapping the backup button and visually nothing happened. Reproducible in PWA standalone mode (home screen), not in a regular Safari tab.
 
-**Entscheidung / Erkenntnis:**
+**Decision / Insight:** The previous `backupProject()` ran `await flushSave()` → `await dbGet()` → `await blobToBase64()` before `navigator.share()`. iOS Safari drops the user-gesture token after the first `await`. By the time `share()` is called, it's gone, the call is rejected silently, and the `<a download>` fallback is completely ignored by iOS in PWA standalone mode. Net result: tap → nothing.
 
-1. **pdf-lib via CDN, dynamisch geladen** statt statisch im `<head>`. Grund: ~250 KB, brauchen die meisten Sessions nicht. Service Worker cached eh nur same-origin, also wäre Static-Load weder schneller noch offline-stabiler. Neuer Helper `loadScript()` ist idempotent via `data-loaded-src`-Attribut.
+Fix: the backup payload is now built **entirely synchronously** from `state.*` (`canvas.toDataURL()` is sync, a dedicated `dataURLToBlobSync()` parses the base64 itself). `navigator.share()` runs within the same gesture. If it's still rejected or unavailable, a visible modal opens — its buttons are new gestures and can still share/`window.open`. So the backup doesn't have to wait on `dbGet()`, `state.projectName` and `state.projectCreatedAt` were mirrored into the state object.
 
-2. **PDF-Pfad verlässt das Sync-Gesture-Pattern bewusst.** `PDFDocument.create()` und `embedPng()` sind beide async — wir können `navigator.share()` nicht inside dem ursprünglichen Click-Gesture aufrufen. Statt eines Hacks (z.B. PDF vorberechnen beim Mount): konsequent `openSaveSheet()` benutzen. Dessen Modal-Buttons sind selbst frische Gestures, die unter iOS-Standalone die Share-Anfrage passen. UX: Toast „Generating PDF…" (60 s) während pdf-lib lädt + zeichnet, dann Modal mit Share/Open-Buttons.
+**Rationale:** The same bug also existed in `#save-btn` (the toBlob callback is async), just noticed less often because it was used less — fixed alongside. Both now use the same `openSaveSheet()` fallback, so a consistent UX pattern.
 
-3. **A4 orientierungs-aware.** Wenn `state.height >= state.width` → portrait (595.28 × 841.89 pt), sonst landscape. Bild wird mit `Math.min(availW/imgW, availH/imgH)`-Skalierung zentriert, 10 mm Rand, plus 18 pt Fußzeile für den Projektnamen.
-
-4. **Farb-Legende als 4-Spalten-Grid.** Swatch 34×34 pt (≈12 mm), rechts daneben Nummer (11 pt bold) + Hex (9 pt). Reicht bis zu ~36 Farben auf einer A4-Seite — auch das größte Preset (Fine = 50) bleibt knapp innerhalb der Seite; falls jemals zu viele Farben kommen, kann eine zweite Legenden-Seite ergänzt werden.
-
-**Begründung:** Der Druck-Use-Case (Offline malen mit Stiften, Vorlage verschenken) braucht keinen Echtzeit-Speed, also ist die kurze „Generating"-Phase akzeptabel. Wichtiger ist: keine stillen Failures auf iOS, und kein 250-KB-Tax für 99% der Sessions.
-
-**Auswirkung:** Drei neue Funktionen (`loadScript`, `dataURLToUint8Array`, `rgbToHex`) + `exportPDF`. HTML +1 Button im Paint-Header. sw.js Cache `pbn-v9`. Architekturlehre für künftige Features: Wenn der Build-Pfad unausweichlich async ist, nicht versuchen Share-im-Gesture zu hacken — `openSaveSheet()` ist das saubere Pattern.
+**Impact:** Backup and image save now work reliably in iOS PWA standalone. Architecture lesson for the whole codebase: no `await` may precede any `navigator.share()`. New share/download buttons should always use the modal pattern, which gives a visible recovery path if iOS rejects the first share request after all.
 
 ---
 
-## 2026-05-17 — Session-Pause, Backlog für nächste Session
+## 2026-05-17 — Slider out, preset pills in
 
-**Kontext:** Drei offene Wünsche (Druck-PDF, Weniger-Farben-Preset, schönere Detail-Auswahl statt Slider). Session wird hier beendet, um Conversation-Tokens zu sparen.
+**Context:** The `<input type="range">` with the 4 numeric steps 12/24/36/50 forced the user into a number decision with no inherent meaning. Also awkward to hit precisely on touch.
 
-**Entscheidung:** Alle drei Items strukturiert in `BACKLOG.md` festgehalten — mit konkretem Implementation-Plan, Bibliotheks-Empfehlung (pdf-lib für PDF), Code-Stellen und Akzeptanzkriterien.
+**Decision:** Replaced with five preset cards (Kids/Easy/Standard/Detailed/Fine) with label + color count + hint text. Plus a `minPxFactor` per preset — "Kids" now produces genuinely coarser fields, not just fewer colors (previously: the same fixed threshold in the worker).
 
-**Begründung:** Die nächste Session (egal welche KI, egal wann) kann ohne Aufwärm-Runde direkt loslegen. Das BACKLOG erklärt nicht nur *was* zu tun ist, sondern auch *wo im Code* und *wie es konkret aussehen soll*.
+**Rationale:** Presets translate the k number into intent ("For kids" instead of "8 colors"). Card selection is easy to hit accurately on touch, communicates the selection more clearly, and makes room for the `hint` text. With the new cap of 8000 px in the worker, Kids presets can genuinely merge large areas even on high-resolution photos.
 
-**Auswirkung:** Nächste Session sollte beginnen mit `README.md` → `BACKLOG.md` → loslegen. MEMORY.md wird bei Implementierung um die jeweilige Entscheidung ergänzt, CHANGELOG.md bekommt einen neuen Versions-Eintrag.
+**Impact:** `state.preset` replaces the slider value, `generateTemplate(k, minPxFactor)` takes both parameters, the worker's `mergeTiny` uses the passed-through factor. Default is "Standard" (24) — deliberately one step lower than the previous default slider value (36), because 24 is the better starting point for most photos.
 
 ---
 
-## 2026-05-21 — v0.9.0 Antigravity-Merge: SEO, Tutorial, Print-Sheet
+## 2026-05-17 — Text labels under icons for new users
 
-**Kontext:** Zwischen Session-Pause (2026-05-17) und heute habe ich mit Antigravity weiter am Projekt gearbeitet — allerdings in einem separaten Ordner `paint-by-numbers-v2`, nicht im Haupt-Repo. Die v2 hat ein SEO-Komplett-Paket, ein Print-Optionen-Modal, ein Tutorial-Modal, einen Like-Button und ein „Past Projects"-Hero bekommen. Heute soll der Code zurück ins Hauptprojekt und als v0.9.0 released werden.
+**Context:** Four icon buttons in the paint header with no visible text. Experienced users guess correctly, new users don't know what "eye", "chest", "down arrow" mean — even with a `title=` attribute, since that doesn't appear on touch.
 
-**Entscheidung / Erkenntnis:**
+**Decision:** A small `<span class="icon-label">` under each header icon (`Back`, `Template`, `Backup`, `Save`). 10 px, dim color, accent in the active state. The header grows by ~10 px as a result — negligible.
 
-1. **Diff-Analyse zuerst, dann Merge.** Vergleich der beiden Ordner zeigte: nur 3 Dateien geändert (`index.html`, `manifest.webmanifest`, `sw.js`), 2 neu (`robots.txt`, `sitemap.xml`). Alle Markdown-Docs (MEMORY, CHANGELOG, BACKLOG, brief, SPEC, README) waren bit-identisch — Antigravity hat die Doku nicht angefasst. Heißt: trivialer Drop-in-Merge.
+**Rationale:** Simpler than a first-launch tour, no state to manage, works offline, immediately clear to first-time users. Labels stay off in the floating toolbar (Brush/Eraser/Undo) because those icons are more universal there and space is tight.
 
-2. **v1 hatte 6 staged + 6 unstaged Änderungen, die sich gegenseitig aufhoben** (`git diff HEAD` war leer). Ursache vermutlich ein verkorkster `git reset HEAD` aus einer früheren Session. Lösung: `git reset HEAD -- . && git checkout -- .` — danach war working tree clean auf HEAD = `fef9960` (0.8.0).
+**Impact:** Header CSS scoped via `.paint-header .icon-btn` and `.prep-header .icon-btn`, so the floating toolbar look stays unchanged.
 
-3. **Branch `v0.9.0-antigravity-merge`** statt direkt auf main. Begründung: Diff in der Git-Historie sichtbar, falls jemals jemand fragt „wann kam der SEO-Block?". Solo-Repo, daher kein PR, sondern direkter Merge auf main + Tag.
+---
 
-4. **Versionssprung 0.8.0 → 0.9.0.** Kein Major weil keine Architektur-Brüche, kein Patch weil deutlich neue Features (SEO, Tutorial, Print-Modal). Sauberer Minor-Release.
+## 2026-05-18 — Print PDF via pdf-lib, loaded on demand
 
-5. **Erstmaliges Setzen von Git-Tags.** Vor 0.9.0 existierten gar keine Tags im Repo (CHANGELOG.md führte zwar Versionen, aber `git tag` war leer). Beim Push werden retrospektiv `v0.8.0` (auf `fef9960`) und `v0.9.0` (auf dem neuen Merge-Commit) angelegt.
+**Context:** The print PDF was the next item in the BACKLOG. Requirement: page 1 numbered template print-ready on A4, page 2 color legend. It has to work on the iPad PWA (standalone mode) — so the iOS share-gesture trap again.
 
-**Begründung:** Antigravity-Arbeit nicht zu verwerfen ist wichtig, aber „verschiedene Codebases in zwei Ordnern" ist langfristig untragbar. Single Source of Truth muss das GitHub-Repo bleiben. Tags machen die Versions-Historie auf GitHub als Releases sichtbar — bisher nur in CHANGELOG.md erkennbar.
+**Decision / Insight:**
 
-**Auswirkung:** Künftig bei Arbeit mit Antigravity (oder anderen Agents): direkt im Hauptordner arbeiten und committen, nicht in Parallel-Ordner. Falls Parallel-Ordner unvermeidbar (z.B. Experimente, die nicht ins Repo sollen), `_experiments/` als geignorerte Schwester. Der `paint-by-numbers-v2`-Ordner wird heute nach `_archive/paint-by-numbers-v2-2026-05-21/` verschoben.
+1. **pdf-lib via CDN, loaded dynamically** instead of statically in `<head>`. Reason: ~250 KB, most sessions don't need it. The Service Worker only caches same-origin anyway, so static loading would be neither faster nor more offline-stable. The new `loadScript()` helper is idempotent via a `data-loaded-src` attribute.
+
+2. **The PDF path deliberately leaves the sync-gesture pattern.** `PDFDocument.create()` and `embedPng()` are both async — `navigator.share()` can't be called inside the original click gesture. Instead of a hack (e.g. precomputing the PDF on mount): consistently use `openSaveSheet()`. Its modal buttons are themselves fresh gestures that pass the share request under iOS standalone. UX: a "Generating PDF…" toast (60 s) while pdf-lib loads and draws, then a modal with share/open buttons.
+
+3. **A4, orientation-aware.** If `state.height >= state.width` → portrait (595.28 × 841.89 pt), otherwise landscape. The image is centered with `Math.min(availW/imgW, availH/imgH)` scaling, 10 mm margin, plus an 18 pt footer for the project name.
+
+4. **Color legend as a 4-column grid.** Swatch 34×34 pt (≈12 mm), number (11 pt bold) + hex (9 pt) next to it. Fits up to ~36 colors on one A4 page — even the largest preset (Fine = 50) stays just within the page; if too many colors ever come up, a second legend page could be added.
+
+**Rationale:** The print use case (offline painting with pens, giving away the template) doesn't need real-time speed, so the short "Generating" phase is acceptable. More important: no silent failures on iOS, and no 250 KB tax for 99% of sessions.
+
+**Impact:** Three new functions (`loadScript`, `dataURLToUint8Array`, `rgbToHex`) + `exportPDF`. One extra button in the HTML paint header. `sw.js` cache `pbn-v9`. Architecture lesson for future features: when the build path is unavoidably async, don't try to hack share-inside-gesture — `openSaveSheet()` is the clean pattern.
+
+---
+
+## 2026-05-17 — Session pause, backlog for the next session
+
+**Context:** Three open requests (print PDF, fewer-colors preset, nicer detail selection instead of a slider). The session ends here to save conversation tokens.
+
+**Decision:** All three items recorded in structured form in `BACKLOG.md` — with a concrete implementation plan, library recommendation (pdf-lib for PDF), code locations, and acceptance criteria.
+
+**Rationale:** The next session (whichever AI, whenever) can start directly without a warm-up round. The BACKLOG explains not only *what* to do, but also *where in the code* and *what it should concretely look like*.
+
+**Impact:** The next session should start with `README.md` → `BACKLOG.md` → get going. MEMORY.md gets the respective decision added during implementation, CHANGELOG.md gets a new version entry.
+
+---
+
+## 2026-05-21 — v0.9.0 Antigravity merge: SEO, tutorial, print sheet
+
+**Context:** Between the session pause (2026-05-17) and today, I kept working on the project with Antigravity — but in a separate folder `paint-by-numbers-v2`, not in the main repo. The v2 got a complete SEO package, a print-options modal, a tutorial modal, a like button, and a "Past Projects" hero. Today the code goes back into the main project and ships as v0.9.0.
+
+**Decision / Insight:**
+
+1. **Diff analysis first, then merge.** Comparing the two folders showed: only 3 files changed (`index.html`, `manifest.webmanifest`, `sw.js`), 2 new (`robots.txt`, `sitemap.xml`). All Markdown docs (MEMORY, CHANGELOG, BACKLOG, brief, SPEC, README) were bit-identical — Antigravity never touched the docs. Meaning: a trivial drop-in merge.
+
+2. **v1 had 6 staged + 6 unstaged changes that cancelled each other out** (`git diff HEAD` was empty). Cause presumably a botched `git reset HEAD` from an earlier session. Fix: `git reset HEAD -- . && git checkout -- .` — afterward the working tree was clean at HEAD = `fef9960` (0.8.0).
+
+3. **Branch `v0.9.0-antigravity-merge`** instead of directly on main. Rationale: the diff stays visible in git history in case anyone ever asks "when did the SEO block land?". Solo repo, so no PR, just a direct merge to main + tag.
+
+4. **Version jump 0.8.0 → 0.9.0.** No major because no architectural breaks, no patch because clearly new features (SEO, tutorial, print modal). A clean minor release.
+
+5. **First-time setting of git tags.** Before 0.9.0 there were no tags at all in the repo (CHANGELOG.md did track versions, but `git tag` was empty). On push, `v0.8.0` (on `fef9960`) and `v0.9.0` (on the new merge commit) are created retroactively.
+
+**Rationale:** Not discarding the Antigravity work matters, but "different codebases in two folders" is unsustainable long-term. The GitHub repo has to remain the single source of truth. Tags make the version history visible as GitHub Releases — previously only recognizable in CHANGELOG.md.
+
+**Impact:** Going forward, when working with Antigravity (or other agents): work and commit directly in the main folder, not in a parallel folder. If a parallel folder is unavoidable (e.g. experiments that shouldn't go into the repo), use `_experiments/` as a gitignored sibling. The `paint-by-numbers-v2` folder is moved today to `_archive/paint-by-numbers-v2-2026-05-21/`.
+
+---
+
+## 2026-09-21 — Full review, 18 findings, releases 0.9.1 and 0.10.0
+
+**Context:** The project had rested since 0.9.0 (May 2026). A code read plus a live test of the deployed version produced 18 findings (R-01 … R-18), among them: app icons that never existed (which made the atomic `cache.addAll()` fail, so nothing was precached), pointer listeners stacking up per opened project, a start screen that could not scroll on phones, a project list capped at 6, and a hard-coded fake like counter from the 0.9.0 rework.
+
+**Decision / Insight:** All findings were implemented in two steps (0.9.1 quick fixes, 0.10.0 the rest). Notable choices: undo moved from PNG snapshots to dirty rectangles taken from a mirror canvas; k-means fits centroids on a subsample; regions are relabelled after merging so numbering follows what the outlines actually show; the fake like counter and the placeholder donate link were removed rather than backed with a service.
+
+**Rationale:** The dirty-rect undo is synchronous and removes a full PNG encode per stroke. Relabelling is cheaper and more robust than teaching `mergeTiny` to unify same-color neighbours. A fabricated social-proof number on a public, indexed page is misleading, and a real counter would need a backend, which the brief rules out.
+
+**Impact:** Any markup that reaches the DOM from an imported backup must be rebuilt from validated numbers (`importProject`), never inserted as HTML. New files must be added to `FILES` in `sw.js` only if they really exist — one missing file voids the whole precache. Pointer-related changes still need a check on a real iPad (backlog D-01).
+
+---
+
+## 2026-09-21 — Landing page for promotion: example, features, like counter
+
+**Context:** The owner wants to promote the tool. The features were solid but invisible to a first-time visitor: the start screen showed a headline, two buttons and an empty project list. The like button and the coffee link, removed in 0.9.1 because they were fake/placeholder, were wanted back.
+
+**Decision / Insight:** The start screen became a scrolling landing page (hero + before/after slider + feature grid + steps + support card). The example is a procedural scene run through the real pipeline, so the repo carries no third-party image and the "after" picture is honest. Likes use a public hit counter with a fixed offset of 34 chosen by the owner; the coffee URL is a constant still to be filled (backlog L-01).
+
+**Rationale:** A before/after comparison explains the product faster than any copy. A range input as the slider gives drag, tap and keyboard control for free. A real counter avoids the fabricated 12.4k of 0.9.0 while keeping zero backend.
+
+**Impact:** Generating the example exposed a numbering bug (fields joined by a 1 px neck shared one number) — numbering now labels the areas enclosed by the outline mask (`OUTLINE` pseudo color in the worker). Example images are regenerated with `tests/example-assets.playwright.js` whenever the pipeline changes visibly. Every new static file must be added to `FILES` in `sw.js`; a unit test now checks that all of them exist.
+

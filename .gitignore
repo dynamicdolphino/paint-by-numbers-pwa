@@ -5,3 +5,6 @@ node_modules/
 .env.*
 .vscode/
 .idea/
+.claude/launch.json
+.playwright-mcp/
+tests/.out/
