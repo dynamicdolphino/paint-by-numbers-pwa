@@ -1,5 +1,12 @@
 # Paint by Numbers — Photo-to-Template PWA for iPad & Apple Pencil
 
+[![version](https://img.shields.io/github/package-json/v/dynamicdolphino/paint-by-numbers-pwa?label=version)](CHANGELOG.md)
+[![license](https://img.shields.io/github/license/dynamicdolphino/paint-by-numbers-pwa)](LICENSE)
+[![test](https://github.com/dynamicdolphino/paint-by-numbers-pwa/actions/workflows/test.yml/badge.svg)](https://github.com/dynamicdolphino/paint-by-numbers-pwa/actions/workflows/test.yml)
+[![platform](https://img.shields.io/badge/platform-iPad%20%7C%20Safari%20%7C%20PWA-lightgrey)](https://dynamicdolphino.github.io/paint-by-numbers-pwa/)
+[![dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](package.json)
+[![live demo](https://img.shields.io/badge/live%20demo-GitHub%20Pages-blue)](https://dynamicdolphino.github.io/paint-by-numbers-pwa/)
+
 **Photo in → numbered template, matching palette and a pressure-sensitive canvas out.**
 A progressive web app that turns any photo into a paint-by-numbers template and lets you paint
 it right away — in Safari on the iPad, installed to the home screen, fully offline. No server,
