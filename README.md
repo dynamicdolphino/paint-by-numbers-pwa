@@ -93,6 +93,7 @@ paint-by-numbers-pwa/
 ├── step-2.jpg / step-3.jpg     # how-it-works pictures (template, painted)
 ├── feat-levels.jpg / feat-paint.jpg / feat-print.jpg  # landing-page feature pictures
 ├── robots.txt / sitemap.xml
+├── vendor/                     # pdf-lib 1.17.1 (MIT) + hash record
 ├── tests/
 │   ├── worker.test.mjs         # pipeline unit tests
 │   ├── example-assets.playwright.js
@@ -111,7 +112,8 @@ paint-by-numbers-pwa/
 - PointerEvents for Pencil pressure, pinch zoom and palm rejection
 - IndexedDB for projects, `navigator.storage.persist()` against eviction
 - Service Worker for offline use
-- One optional library: [pdf-lib](https://pdf-lib.js.org/) 1.17.1, loaded on demand from cdnjs with an SRI hash, only when a PDF is exported
+- One vendored library: [pdf-lib](https://pdf-lib.js.org/) 1.17.1 in [vendor/](vendor/README.md), loaded on demand when a PDF is exported and precached for offline use
+- Content-Security-Policy `<meta>`: own origin only, the anonymous like counter is the single third-party request
 
 ## Getting Started
 
@@ -127,7 +129,7 @@ middle mouse button or Space + drag pans as well.
 
 ## Status & Open Items
 
-Version 0.13.0 (light + dark theme, real example photo). All findings of the 2026-09-21 review are implemented and the start screen is a landing page with a live example; the Buy-me-a-coffee URL is still a placeholder (backlog L-01); palm rejection and
+Version 0.14.0 (color hint, offline PDF export, phone layout, CSP). All findings of the 2026-09-21 review are implemented and the start screen is a landing page with a live example; the Buy-me-a-coffee URL is still a placeholder (backlog L-01); palm rejection and
 focal-point pinch zoom are verified with synthetic pointer events only and still need a pass
 on a real iPad with a Pencil (see [BACKLOG.md](BACKLOG.md)).
 

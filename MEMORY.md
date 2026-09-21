@@ -237,3 +237,14 @@ Fix: the backup payload is now built **entirely synchronously** from `state.*` (
 
 **Impact:** New hard-coded colors in CSS break the light theme — use the tokens. After visible pipeline or UI changes rerun `tests/example-assets.playwright.js`, `tests/feature-assets.playwright.js` + `tests/feature-assets.py` and `tests/screenshots.playwright.js`.
 
+---
+
+## 2026-09-21 — pdf-lib moves from the CDN into the repo; color map stored as a PNG
+
+**Context:** A walkthrough as a first-time user showed that the page promised "works offline" and "the only network request is the like counter", while the PDF export fetched pdf-lib from cdnjs. The same pass asked for a hint showing where the picked color belongs.
+
+**Decision / Insight:** pdf-lib 1.17.1 is vendored unmodified (`vendor/`, hash identical to the cdnjs SRI value) and precached by the service worker. The per-pixel color map from the worker is persisted as a PNG whose red channel is the color id — lossless, a few hundred KB instead of w×h raw bytes, and it passes the existing `data:image/png` validation of the backup import. The hint canvas runs at half resolution. A CSP `<meta>` restricts the page to its own origin plus the like counter.
+
+**Rationale:** Keeping the promise is cheaper than rewording it: +510 KB in the install cache, no third party in the export path, SRI handling gone. "Zero dependencies" still holds for npm; the vendored file is recorded with source and hash.
+
+**Impact:** Updating pdf-lib means replacing the file, updating `vendor/README.md` and bumping `CACHE`. Any new external host (fonts, analytics, another API) must be added to the CSP in `index.html` or it is blocked silently — check the console. The service worker needs `worker-src 'self'`, the pipeline worker `blob:`. Projects created before 0.14.0 have no `colorMapBlob`; code must treat `state.colorMap` as optional.

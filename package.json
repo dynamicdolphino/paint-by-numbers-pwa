@@ -1,6 +1,6 @@
 {
   "name": "paint-by-numbers-pwa",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "private": true,
   "description": "Single-file PWA that turns a photo into a paint-by-numbers template. No dependencies — this file only carries the scripts.",
   "license": "MIT",

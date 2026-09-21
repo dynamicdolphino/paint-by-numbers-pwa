@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<!-- Defense in depth (GitHub Pages cannot send headers). Inline script/style are part of the single-file design;
+     'self' + blob: under worker-src are the service worker and the pipeline worker, data:/blob: are project images, abacus is the like counter. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' data: blob: https://abacus.jasoncameron.dev; worker-src 'self' blob:; child-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <title>Paint by Numbers — Free Custom Template Generator from Your Photos</title>
 <meta name="description" content="Turn any photo into a paint-by-numbers template instantly. Free online tool with Apple Pencil support — no uploads, everything stays private on your device.">
 <meta name="keywords" content="paint by numbers, custom paint by numbers, photo to paint by numbers, template generator, free, online, iPad, Apple Pencil, paint by numbers from photo">
@@ -338,6 +341,8 @@
 
   .hero-projects { display: flex; flex-direction: column; min-width: 0; }
   .hero-projects[hidden] { display: none; }
+  .continue-link { margin: 0; font-size: 14px; }
+  .continue-link[hidden] { display: none; }
   .resume-list {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px;
   }
@@ -479,6 +484,20 @@
   #project-name:hover { border-color: var(--border); }
   #project-name:focus { outline: none; border-color: var(--accent); background: var(--surface); }
   .paint-progress { font-family: var(--sans); font-size: 12px; color: var(--text-mute); }
+  .paint-progress { white-space: nowrap; }
+  @media (max-width: 560px) {
+    /* Buttons on the first row, name + progress on their own row — the name was cut to one letter. */
+    .paint-header { flex-wrap: wrap; row-gap: 6px; padding: 10px 12px; }
+    .paint-header #paint-back { margin-right: auto; }
+    .paint-header .project-title { order: 2; flex: 1 0 100%; flex-direction: row; align-items: baseline; gap: 10px; }
+    .paint-header #project-name { flex: 1 1 auto; width: auto; }
+    /* Tools in one row along the top of the stage; fitCanvas() keeps the canvas below it. */
+    #screen-paint .toolbar-floating { flex-direction: row; align-items: center; left: 8px; top: 8px; right: 8px; }
+    #screen-paint .toolbar-floating .control-row { flex: 1; min-width: 0; }
+    .toolbar-floating #brush-size { width: 100% !important; }
+  }
+  #canvas-hint { opacity: 0; transition: opacity 0.25s ease; pointer-events: none; }
+  #canvas-hint.on { opacity: 1; }
   #tool-clear.confirm { color: #ff4d4d; background: rgba(255,50,50,0.15); }
   .paint-stage {
     background: var(--stage-bg);
@@ -527,7 +546,6 @@
     transition: transform 0.15s ease, border-color 0.15s ease;
   }
   .swatch.active { border-color: var(--text); transform: scale(1.06); box-shadow: 0 0 0 2px var(--accent); }
-  .swatch span { mix-blend-mode: difference; color: #fff; }
   .toolbar-floating {
     position: absolute; left: 12px; top: 12px;
     display: flex; flex-direction: column; gap: 8px;
@@ -797,6 +815,7 @@
           Import a backup (.pbn.json)
           <input type="file" id="import-input" accept=".json,.pbn,application/json" style="position:absolute;opacity:0;width:1px;height:1px">
         </label>
+        <p class="continue-link" id="continue-link" hidden><a class="text-link" href="#hero-projects">Continue painting — <span id="continue-count"></span></a></p>
         <div class="hero-meta">
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Your photo never leaves this device</span>
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Ready in seconds</span>
@@ -816,6 +835,14 @@
         <figcaption>Drag to compare — made with the “Standard” level, 24 colors.</figcaption>
       </figure>
     </div>
+
+    <section class="hero-projects" id="hero-projects" aria-labelledby="projects-title">
+      <div class="section-head" id="projects-title">
+        <span class="kicker">Continue</span>
+        <h2>Your projects</h2>
+      </div>
+      <div class="resume-list" id="resume-list"></div>
+    </section>
 
     <section class="how" aria-labelledby="how-title">
       <div class="section-head">
@@ -837,14 +864,6 @@
         </li>
       </ol>
       <p class="how-more"><button class="text-link" id="howto-btn" type="button">Show me step by step</button></p>
-    </section>
-
-    <section class="hero-projects" id="hero-projects" aria-labelledby="projects-title">
-      <div class="section-head" id="projects-title">
-        <span class="kicker">Continue</span>
-        <h2>Your projects</h2>
-      </div>
-      <div class="resume-list" id="resume-list"></div>
     </section>
 
     <section aria-labelledby="features-title">
@@ -900,7 +919,7 @@
     </section>
 
     <p class="footnote" role="status" aria-live="polite" id="like-status" style="position:absolute;left:-9999px"></p>
-    <p class="footnote">Your photos and paintings stay on this device. The only network request of this page is the anonymous like counter.<br>Open source (MIT) · <a href="https://github.com/dynamicdolphino/paint-by-numbers-pwa" target="_blank" rel="noopener">GitHub</a></p>
+    <p class="footnote">Your photos and paintings stay on this device. The only request this page sends to another server is the anonymous like counter.<br>Open source (MIT) · <a href="https://github.com/dynamicdolphino/paint-by-numbers-pwa" target="_blank" rel="noopener">GitHub</a></p>
   </div>
 </section>
 
@@ -982,6 +1001,7 @@
     <div class="canvas-stack" id="canvas-stack">
       <canvas id="canvas-template"></canvas>
       <canvas id="canvas-paint"></canvas>
+      <canvas id="canvas-hint" aria-hidden="true"></canvas>
     </div>
   </div>
   <div class="palette" id="palette"></div>
@@ -1114,6 +1134,7 @@ const state = {
   tool: 'brush',
   brushSize: 14,
   templateVisible: true,
+  colorMap: null, // Uint8Array, palette color id per pixel (see showHint)
   projectId: null,
   projectName: null,       // gespiegelt aus IndexedDB, damit Backup synchron im User-Gesture läuft
   projectCreatedAt: null,
@@ -1181,6 +1202,8 @@ async function renderResumeList() {
   const wrap = $('#resume-list');
   // New visitors see the example and the features instead of an empty list.
   $('#hero-projects').hidden = !items.length;
+  $('#continue-link').hidden = !items.length;
+  $('#continue-count').textContent = items.length === 1 ? '1 project' : items.length + ' projects';
   wrap.innerHTML = '';
   
   for (const it of items) {
@@ -1319,6 +1342,7 @@ async function resumeProject(id) {
     if (state.templateBitmap) state.templateBitmap.close();
     state.templateBitmap = await blobToBitmap(p.templateBlob);
     state.paintBitmap = p.paintBlob ? await blobToBitmap(p.paintBlob) : null;
+    state.colorMap = p.colorMapBlob ? await colorMapFromBlob(p.colorMapBlob, p.width, p.height) : null;
     go('paint');
     setupPaint();
   } catch (err) {
@@ -1340,6 +1364,7 @@ function renderPresetPills() {
     pill.dataset.id = preset.id;
     pill.type = 'button';
     pill.setAttribute('aria-pressed', String(preset.id === state.preset));
+    pill.setAttribute('aria-label', `${preset.label}: ${preset.k} colors, ${preset.hint}`);
     pill.innerHTML =
       `<span class="preset-label">${preset.label}</span>` +
       `<span class="preset-k">${preset.k} colors</span>` +
@@ -1428,7 +1453,7 @@ self.onmessage = async (e) => {
     const fields = labelRegions(fieldIds, w, h);
     const numbered = makeNumbering(fields.regions, fields.regionMap, fieldIds, w, h);
     post('progress', { stage: 'Done', p: 1 });
-    post('done', { palette: numbered.palette, paletteRGB: palette, w, h, lineImage: out.lineImage, numbers: numbered.numbers });
+    post('done', { palette: numbered.palette, paletteRGB: palette, w, h, lineImage: out.lineImage, numbers: numbered.numbers, colorMap: Uint8Array.from(idMap) });
   } catch (err) {
     post('error', { message: String(err && err.message || err) });
   }
@@ -1791,7 +1816,7 @@ async function generateTemplate(k, minPxFactor) {
 }
 
 async function finishTemplate(payload) {
-  const { palette: sortedColorIds, paletteRGB, w, h, lineImage, numbers } = payload;
+  const { palette: sortedColorIds, paletteRGB, w, h, lineImage, numbers, colorMap } = payload;
   // paletteRGB[colorId] = { r, g, b }  -> direkter Mittelwert aus k-Means im Worker, robust auch für konkave Regionen
   const finalPalette = sortedColorIds.map((cid, i) => {
     const rgb = paletteRGB[cid] || { r: 128, g: 128, b: 128 };
@@ -1832,6 +1857,8 @@ async function finishTemplate(payload) {
 
   // Persist
   const templateBlob = await new Promise(res => tplCanvas.toBlob(b => res(b), 'image/png'));
+  state.colorMap = colorMap || null;
+  const colorMapBlob = colorMap ? await new Promise(res => colorMapToCanvas(colorMap, w, h).toBlob(b => res(b), 'image/png')) : null;
   await dbPut({
     id: state.projectId,
     name: state.projectName,
@@ -1842,6 +1869,7 @@ async function finishTemplate(payload) {
     origDataURL: state.origDataURL,
     thumb: makeThumb(state.origImageBitmap, w, h),
     templateBlob,
+    colorMapBlob,
     paintBlob: null,
   });
 
@@ -1891,10 +1919,13 @@ function fitCanvas() {
     requestAnimationFrame(fitCanvas);
     return;
   }
-  const scale = Math.min(rect.width / state.width, rect.height / state.height) * 0.95;
+  // On narrow screens the toolbar is a row across the top — fit the canvas into the space below it.
+  const bar = $('.toolbar-floating').getBoundingClientRect();
+  const reserve = bar.width > rect.width * 0.6 ? (bar.bottom - rect.top) + 8 : 0;
+  const scale = Math.min(rect.width / state.width, (rect.height - reserve) / state.height) * 0.95;
   state.zoom = scale;
   state.panX = 0;
-  state.panY = 0;
+  state.panY = reserve / 2;
   applyTransform();
 }
 
@@ -1903,15 +1934,18 @@ function applyTransform() {
   stack.style.width = state.width + 'px';
   stack.style.height = state.height + 'px';
   stack.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
-  for (const c of [$('#canvas-template'), $('#canvas-paint')]) {
+  for (const c of [$('#canvas-template'), $('#canvas-paint'), $('#canvas-hint')]) {
     c.style.width = state.width + 'px';
     c.style.height = state.height + 'px';
   }
   $('#canvas-template').style.opacity = state.templateVisible ? '1' : '0';
   $('#canvas-template').style.pointerEvents = 'none';
   $('#canvas-template').style.mixBlendMode = 'multiply';
-  $('#canvas-template').style.zIndex = '2';
+  $('#canvas-template').style.zIndex = '3';
+  $('#canvas-hint').style.zIndex = '2';
   $('#canvas-paint').style.zIndex = '1';
+  $('#toggle-template').classList.toggle('active', state.templateVisible);
+  $('#toggle-template').setAttribute('aria-pressed', String(state.templateVisible));
 }
 
 function buildPalette() {
@@ -1920,21 +1954,82 @@ function buildPalette() {
   for (const p of state.palette) {
     const b = document.createElement('button');
     b.className = 'swatch';
+    b.type = 'button';
     b.style.background = p.hex;
+    // Number in black or white, whichever reads better on this color.
+    b.style.color = (0.2126 * p.r + 0.7152 * p.g + 0.0722 * p.b) > 140 ? '#111' : '#fff';
+    b.setAttribute('aria-label', `Color ${p.nr}, ${p.hex}`);
+    b.setAttribute('aria-pressed', 'false');
     const lab = document.createElement('span');
     lab.textContent = p.nr;
     b.appendChild(lab);
     b.addEventListener('click', () => {
       state.activeColor = p;
-      for (const el of wrap.querySelectorAll('.swatch')) el.classList.remove('active');
+      for (const el of wrap.querySelectorAll('.swatch')) { el.classList.remove('active'); el.setAttribute('aria-pressed', 'false'); }
       b.classList.add('active');
+      b.setAttribute('aria-pressed', 'true');
+      showHint(p);
     });
     wrap.appendChild(b);
   }
   if (state.palette.length) {
     state.activeColor = state.palette[0];
     wrap.firstChild.classList.add('active');
+    wrap.firstChild.setAttribute('aria-pressed', 'true');
   }
+}
+
+// ---------- Color hint ----------
+// state.colorMap holds one palette color id per pixel. Picking a color flashes its fields so the
+// user sees where it belongs. Half resolution keeps the extra canvas small; projects from before
+// 0.14.0 have no map and simply get no hint.
+const HINT_MS = 1600;
+let hintTimer = 0;
+function showHint(p) {
+  const hint = $('#canvas-hint');
+  clearTimeout(hintTimer);
+  const map = state.colorMap, w = state.width, h = state.height;
+  if (!map || map.length !== w * h) { hint.classList.remove('on'); return; }
+  const hw = Math.ceil(w / 2), hh = Math.ceil(h / 2);
+  hint.width = hw; hint.height = hh;
+  const img = new ImageData(hw, hh);
+  const d = img.data, id = p.colorId;
+  for (let y = 0; y < hh; y++) {
+    const row = (y * 2) * w;
+    for (let x = 0; x < hw; x++) {
+      if (map[row + x * 2] !== id) continue;
+      const o = (y * hw + x) * 4;
+      d[o] = 255; d[o+1] = 106; d[o+2] = 0; d[o+3] = 125;
+    }
+  }
+  hint.getContext('2d').putImageData(img, 0, 0);
+  hint.classList.add('on');
+  hintTimer = setTimeout(() => hint.classList.remove('on'), HINT_MS);
+}
+// The map is stored as a PNG (red channel = color id): lossless, small, and valid in a backup file.
+function colorMapToCanvas(map, w, h) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const img = new ImageData(w, h);
+  const d = img.data;
+  for (let i = 0, o = 0; i < map.length; i++, o += 4) { d[o] = map[i]; d[o+3] = 255; }
+  c.getContext('2d').putImageData(img, 0, 0);
+  return c;
+}
+async function colorMapFromBlob(blob, w, h) {
+  try {
+    const bmp = await blobToBitmap(blob);
+    if (bmp.width !== w || bmp.height !== h) { bmp.close(); return null; }
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(bmp, 0, 0);
+    bmp.close();
+    const d = ctx.getImageData(0, 0, w, h).data;
+    const map = new Uint8Array(w * h);
+    for (let i = 0, o = 0; i < map.length; i++, o += 4) map[i] = d[o];
+    return map;
+  } catch (_) { return null; }
 }
 
 let drawState = null; // { lastX, lastY, pressure }
@@ -2179,9 +2274,9 @@ async function doSave() {
   await dbPut(p);
 }
 function autosave() {
+  updateProgress();
   clearTimeout(autosaveTimer);
   autosaveTimer = setTimeout(() => {
-    updateProgress();
     savePromise = doSave().catch(() => {});
   }, 800);
 }
@@ -2548,6 +2643,7 @@ function backupProject() {
     origDataURL: state.origDataURL,
     templateDataURL,
     paintDataURL,
+    colorMapDataURL: state.colorMap ? colorMapToCanvas(state.colorMap, state.width, state.height).toDataURL('image/png') : null,
   };
 
   const json = JSON.stringify(payload);
@@ -2573,14 +2669,13 @@ function backupProject() {
    document builds, then openSaveSheet() — its own buttons are fresh
    user gestures and pass iOS's standalone-mode share check.
 
-   pdf-lib is ~250 KB so we load it on-demand from a CDN, only when
-   the Print button is tapped. Offline-only sessions without printing
-   never pay the cost.
+   pdf-lib (~510 KB) ships with the app in vendor/ and is loaded on demand,
+   only when a PDF is exported. The service worker caches it, so the export
+   works offline and no third-party host is contacted.
    ------------------------------------------------------------------ */
 
-const PDF_LIB_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';
-// Hash as published by api.cdnjs.com for 1.17.1 — must be updated together with the version.
-const PDF_LIB_SRI = 'sha512-z8IYLHO8bTgFqj+yrPyIJnzBDf7DDhWwiEsk4sY+Oe6J2M+WQequeGS7qioI5vT6rXgVRb4K1UVQC5ER7MKzKQ==';
+// pdf-lib 1.17.1, unmodified copy of the cdnjs file (hash and license: vendor/README.md).
+const PDF_LIB_SRC = 'vendor/pdf-lib.min.js';
 
 function loadScript(src, integrity) {
   return new Promise((resolve, reject) => {
@@ -2589,14 +2684,11 @@ function loadScript(src, integrity) {
     const s = document.createElement('script');
     s.src = src;
     s.async = true;
-    // Don't leak the in-app URL to the CDN, and require CORS so that — when
-    // we eventually pin an SRI hash here — the integrity check can actually run.
-    s.crossOrigin = 'anonymous';
-    s.referrerPolicy = 'no-referrer';
-    if (integrity) s.integrity = integrity;
+    if (integrity) { s.crossOrigin = 'anonymous'; s.integrity = integrity; }
     s.dataset.loadedSrc = src;
     s.onload = () => resolve();
-    s.onerror = () => reject(new Error('Failed to load script: ' + src));
+    // Remove the failed element, otherwise the next attempt finds it and resolves without loading.
+    s.onerror = () => { s.remove(); reject(new Error('Failed to load script: ' + src)); };
     document.head.appendChild(s);
   });
 }
@@ -2627,8 +2719,8 @@ async function exportPDF() {
   toast('Generating PDF…', 60000);
 
   try {
-    if (!window.PDFLib) await loadScript(PDF_LIB_CDN, PDF_LIB_SRI);
-    if (!window.PDFLib) throw new Error('pdf-lib unavailable (offline?)');
+    if (!window.PDFLib) await loadScript(PDF_LIB_SRC);
+    if (!window.PDFLib) throw new Error('pdf-lib unavailable');
 
     const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
     const pdfDoc = await PDFDocument.create();
@@ -2765,6 +2857,8 @@ async function importProject(file) {
   const origDataURL = isImg(data.origDataURL) ? data.origDataURL : null;
   const tplBlob = data.templateDataURL ? await dataURLToBlob(data.templateDataURL) : null;
   const paintBlob = data.paintDataURL ? await dataURLToBlob(data.paintDataURL) : null;
+  // Optional (backups since 0.14.0); size is checked when the project is opened.
+  const colorMapBlob = isImg(data.colorMapDataURL) ? await dataURLToBlob(data.colorMapDataURL) : null;
   const newId = 'p_' + Date.now();
   await dbPut({
     id: newId,
@@ -2776,6 +2870,7 @@ async function importProject(file) {
     origDataURL,
     thumb: await thumbFromDataURL(origDataURL || data.templateDataURL),
     templateBlob: tplBlob,
+    colorMapBlob,
     paintBlob: paintBlob,
   });
   await resumeProject(newId);

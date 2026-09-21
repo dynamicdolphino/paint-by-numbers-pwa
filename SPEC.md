@@ -38,7 +38,7 @@ Five fixed presets (not a slider), each with a color count `k` and a `minPxFacto
 IndexedDB. Per project: original image, template bitmap (PNG), palette, paint-canvas bitmap. "Resume" list on the start screen. Backup export/import as a `.pbn.json` file (original + template + palette + paint state); the primary export path is `navigator.share()` with a file attachment (iOS share sheet), falling back to `<a download>` on desktop. Undo stack (10 steps of PNG-blob canvas snapshots).
 
 ## Stack
-Vanilla HTML + CSS + JS, one Web Worker for the pipeline. No external libraries for the core pipeline (hand-written). One on-demand exception: pdf-lib (1.17.1), loaded dynamically from a CDN only when the user exports a PDF, so sessions that never print don't pay the ~250 KB cost. PWA manifest + Service Worker for offline support.
+Vanilla HTML + CSS + JS, one Web Worker for the pipeline. No external libraries for the core pipeline (hand-written). One on-demand exception: pdf-lib (1.17.1), shipped in `vendor/` and loaded only when the user exports a PDF; the service worker precaches it, so the export works offline and no third-party host is contacted. PWA manifest + Service Worker for offline support.
 
 ## Design
 From `antigravity-portfolio-prompt.md`:

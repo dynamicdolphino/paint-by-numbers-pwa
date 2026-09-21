@@ -6,6 +6,26 @@ Newest entries **on top**.
 
 ---
 
+## [0.14.0] — 2026-09-21 — User walkthrough fixes: offline PDF, color hint, phone layout, CSP
+
+### Added
+- Color hint: picking a color flashes every field that belongs to it (orange overlay, 1.6 s). The worker returns a per-pixel color map; it is stored with the project as a PNG (`colorMapBlob`, red channel = color id) and travels in backups as the optional `colorMapDataURL`. Older projects and backups simply show no hint.
+- "Continue painting — n projects" link under the hero buttons when projects exist.
+- Content-Security-Policy `<meta>`: own origin only, plus `blob:` workers, `data:`/`blob:` images and the like counter host.
+- `vendor/` with pdf-lib 1.17.1, its license and a README recording source and hash.
+
+### Changed
+- PDF export loads pdf-lib from `vendor/pdf-lib.min.js` instead of cdnjs; the service worker precaches it (`pbn-v16`). The export now works offline and the like counter really is the only third-party request, as the footer says.
+- "Your projects" sits directly under the hero instead of below "How it works".
+- Paint screen below 560 px: buttons on the first header row, project name and progress on their own row; the tools form one row across the top of the stage and `fitCanvas()` keeps the canvas below it.
+- Palette numbers are black or white depending on the swatch luminance (was `mix-blend-mode: difference`, unreadable on mid tones). Swatches and level pills have accessible names and `aria-pressed`; the template toggle shows its state.
+- "% painted" updates at the end of each stroke, not after the autosave delay.
+
+### Fixed
+- `loadScript()` left a failed `<script>` element behind, so every retry resolved without loading and the PDF export stayed broken until a reload.
+
+---
+
 ## [0.13.0] — 2026-09-21 — Real photo as the example, pictures in the steps
 
 ### Changed

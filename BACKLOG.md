@@ -11,12 +11,13 @@
 |---|---|---|
 | D-01 | P1 | Verify palm rejection (R-06) and focal-point pinch zoom (R-07) on the device — so far only checked with synthetic pointer events in a desktop browser. |
 | D-02 | P2 | Measure template generation on the oldest iPad in use (Fine preset, 2000 px photo) — desktop: 1.6 s after the subsampling change (R-11). |
-| D-03 | P2 | Check the new app icon on the home screen and the PDF export with the SRI hash on iOS. |
+| D-03 | P2 | Check the new app icon on the home screen and the PDF export (vendored pdf-lib since 0.14.0) on iOS. |
 | L-01 | P1 | Before promotion: set the real Buy-me-a-coffee profile in `BMC_URL` (`index.html`) — currently the buymeacoffee.com homepage. |
 | L-02 | P2 | Like counter depends on the free service abacus.jasoncameron.dev (keys expire after long inactivity, no SLA). If it disappears the button still works locally and shows the cached count; consider an own endpoint once traffic justifies it. `LIKE_BASE = 34` is a fixed offset chosen by the owner, not measured likes. |
 | L-03 | P3 | `loadFromFile` uses `img.decode()`, which stalls while the tab is hidden (seen in the embedded test browser only). `createImageBitmap(file)` would avoid it — check HEIC support on iOS first. |
 | L-04 | P3 | Theme toggle exists only on the start screen; the paint and setup screens follow the chosen theme but offer no switch. Add one to the paint header if users ask. |
 | D-04 | P3 | Modals have Escape / backdrop close and initial focus, but no full focus trap (rest of R-18). `user-scalable=no` stays: deliberate for a drawing surface. |
+| D-05 | P2 | Device check for 0.14.0: the CSP `<meta>` (`worker-src 'self' blob:` with `child-src` fallback) and the color hint on the oldest iPad / iOS version in use — verified in desktop Chromium only. |
 
 ---
 
@@ -38,6 +39,17 @@
 - Difficulty analysis ("this image has a lot of small regions, want to try the Easy preset first?")
 
 ---
+
+## Done in 0.14.0 (2026-09-21, user walkthrough + security check)
+
+- ✅ U-01 — pdf-lib self-hosted in `vendor/` and precached; "works offline" and the footer's network claim are true again
+- ✅ U-02 — `loadScript` removes a failed script element, retries load again
+- ✅ U-03 — "Your projects" directly under the hero, "Continue painting" link in the hero
+- ✅ U-04 — Paint screen at 375 px: full project name, one-line progress, tools in a row above the canvas
+- ✅ U-05 — Color hint on picking a color, template toggle state, readable palette numbers, accessible names
+- ✅ U-06 — Progress label updates per stroke
+- ✅ S-01 — Content-Security-Policy `<meta>`
+- Security check of `index.html` / `sw.js`: no high or medium findings (DOM sinks static or `textContent`, import validated, no secrets, CI without untrusted input)
 
 ## Done in 0.13.0 (2026-09-21)
 
