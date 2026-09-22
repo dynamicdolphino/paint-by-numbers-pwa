@@ -6,6 +6,26 @@ Newest entries **on top**.
 
 ---
 
+## [0.15.0] — 2026-09-22 — Landing page redesign (taste-skill pass)
+
+### Changed
+- Landing page rebuilt after an audit with the `taste-skill` design skill (redesign mode: keep content, brand accent and information architecture; new visual language). One type family now: the system sans for everything, headlines heavier and tighter (the serif display face is gone, also on the setup, paint and modal titles).
+- Neutral palette instead of warm near-black/cream: dark `#0E0E10` with `#F4F4F5` text, light white with `#18181B` text; the orange accent, CTA and contrast tokens are unchanged. The radial glow behind the hero is gone. `theme-color` follows the new dark value.
+- Hero is left-aligned on every width, holds four elements only (headline, one 19-word lead, two buttons, the import pill); the "free · no sign-up" eyebrow and the two check-mark claims were removed, the claims live in the "Private by design" statement. Headline fits in two lines at 42 px on desktop.
+- Section labels (kickers) removed everywhere, headlines alone carry the structure.
+- "How it works" is a three-cell grid (step 1 tall on the left, steps 2 and 3 stacked right) with the picture above each caption instead of three equal cards.
+- Showcase: two split rows, then the PDF feature as one full-width row (was three alternating rows).
+- Feature trio is a featured statement plus two dividers-only items instead of three equal cards; the support panel is one centered tinted block without gradient or border.
+- Shape rule: interactive controls are pills, media and panels 16 px, small controls 10 px (`--radius-sm`, `--radius`).
+- Motion: hero children stagger in once, sections rise on scroll via CSS `animation-timeline: view()` where supported; everything sits under `prefers-reduced-motion: no-preference`.
+- Copy: no em-dashes in visible text (title, meta, landing, toasts, tutorial, PDF heading, manifest); lead shortened; "Continue painting: n projects".
+- New app mark: one field of a template, paper tile with a contour line, the lower part painted orange, the number 3 above (`docs/logo.svg`; `icon-192.png`, `icon-512.png` and `og-image.png` rendered from it with `tests/icons.playwright.js`). Replaces the ring of color dots.
+- Setup screen: from 900 px the controls sit in a 340 px panel beside the preview and the detail levels are a vertical list (name left, color count right); on phones they stay a row of larger pills. Each level has a one-sentence description under the list; "Generate template" moved from the header into the panel, full width. The preview lost its bordered box and sits directly on the stage with rounded corners.
+- Paint screen: the floating tools are three glass groups (brush and eraser; undo, clear and the new "Fit to screen" button that resets zoom and pan; brush size as a vertical slider with a live dot showing the current size). Groups use the theme tokens, so they are light on the light theme instead of always dark. Swatches and icon buttons use the 10 px radius token.
+- Service worker cache `pbn-v17`.
+
+---
+
 ## [0.14.0] — 2026-09-21 — User walkthrough fixes: offline PDF, color hint, phone layout, CSP
 
 ### Added

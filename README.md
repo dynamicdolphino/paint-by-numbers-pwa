@@ -74,6 +74,7 @@ Screenshots from the running app (the bundled example photo, iPad landscape view
 | [tests/example-assets.playwright.js](tests/example-assets.playwright.js) | Opt-in script that regenerates the landing-page example images |
 | [tests/feature-assets.playwright.js](tests/feature-assets.playwright.js) + [.py](tests/feature-assets.py) | Opt-in scripts for the feature pictures (templates, paint screen, rasterised PDF pages) |
 | [tests/screenshots.playwright.js](tests/screenshots.playwright.js) | Opt-in script that regenerates the README screenshots |
+| [tests/icons.playwright.js](tests/icons.playwright.js) | Opt-in script that renders the app icons and the social preview from [docs/logo.svg](docs/logo.svg) |
 | [SPEC.md](SPEC.md) | Technical specification |
 | [brief.md](brief.md) | Project brief: problem, goals, anti-goals |
 | [BACKLOG.md](BACKLOG.md) | Open topics with IDs, done section |
@@ -88,7 +89,7 @@ paint-by-numbers-pwa/
 ├── sw.js                       # service worker
 ├── manifest.webmanifest
 ├── icon-192.png / icon-512.png # app icons
-├── og-image.png                # social preview
+├── og-image.png                # social preview (rendered by tests/icons.playwright.js)
 ├── example.jpg / example-after.jpg  # landing-page example (photo + template)
 ├── step-2.jpg / step-3.jpg     # how-it-works pictures (template, painted)
 ├── feat-levels.jpg / feat-paint.jpg / feat-print.jpg  # landing-page feature pictures
@@ -99,6 +100,7 @@ paint-by-numbers-pwa/
 │   ├── example-assets.playwright.js
 │   ├── feature-assets.playwright.js / feature-assets.py
 │   └── screenshots.playwright.js
+├── docs/logo.svg               # app mark, source of the icons
 ├── docs/screenshots/           # README images
 ├── .github/workflows/test.yml  # CI: npm test
 ├── package.json                # scripts only, no dependencies

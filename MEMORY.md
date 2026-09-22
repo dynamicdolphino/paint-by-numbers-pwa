@@ -248,3 +248,18 @@ Fix: the backup payload is now built **entirely synchronously** from `state.*` (
 **Rationale:** Keeping the promise is cheaper than rewording it: +510 KB in the install cache, no third party in the export path, SRI handling gone. "Zero dependencies" still holds for npm; the vendored file is recorded with source and hash.
 
 **Impact:** Updating pdf-lib means replacing the file, updating `vendor/README.md` and bumping `CACHE`. Any new external host (fonts, analytics, another API) must be added to the CSP in `index.html` or it is blocked silently — check the console. The service worker needs `worker-src 'self'`, the pipeline worker `blob:`. Projects created before 0.14.0 have no `colorMapBlob`; code must treat `state.colorMap` as optional.
+
+---
+
+## 2026-09-22 — Landing redesign with the taste-skill audit
+
+**Context:** The landing page had grown feature by feature (eyebrow pill, kickers above every section, three-card rows twice, three alternating showcase rows, serif display on a dark warm base with an orange glow). The user asked for a redesign driven by the global `taste-skill` (anti-slop frontend skill, `~/.claude/skills/taste-skill/SKILL.md`).
+
+**Decision / Insight:** Read as "redesign, preserve content and accent, overhaul the visual language" (dials: variance 7, motion 5, density 3). Kept: content, copy voice, IA, element ids used by scripts and tests, orange accent and its contrast-checked tokens, both themes. Changed: one type family (system sans, heavier headlines) instead of serif display; neutral zinc-like off-black/white bases; zero eyebrows/kickers; hero limited to headline, lead, buttons, import; three-cell step grid; two split rows plus one full-width row in the showcase; featured-plus-two facts without cards; one tinted support panel; documented radius rule; scroll-driven reveal in CSS only, under `prefers-reduced-motion: no-preference`; no em-dashes in user-visible strings.
+
+**Rationale:** The skill's hard rules match what made the page look templated: label-above-every-headline rhythm, equal card triplets, zigzag repetition, decorative dashes. The template pictures are the color of the page, so the type stays neutral. System fonts keep the single-file, no-network, offline promise (no font-src in the CSP, nothing to vendor).
+
+**Impact:** New landing sections must follow the same rules: no kicker above a headline, max one eyebrow per three sections, no three equal cards, no third consecutive split row, no em-dash in visible text, radii from the two tokens. Run `taste-skill` again before larger visual changes (invoke `/taste-skill` in chat or ask for it by name). README screenshots, icons and `og-image.png` were regenerated the same day.
+
+Second pass the same day, after the user disliked the color-dot icon and asked for the screens after upload: the mark is now a single template field (paper, contour, painted lower half, a number) in `docs/logo.svg`, rasterised by `tests/icons.playwright.js` (icons plus the social preview, both run through the Playwright MCP against `npm start`). Setup got a side panel layout from 900 px with a vertical level list, level descriptions and the CTA inside the panel; the paint tools became three glass groups with a vertical brush-size slider, a live size dot and a "Fit to screen" button. Rule for future icon or preview changes: edit the SVG or the HTML in that spec and rerun it, never hand-edit the PNGs.
+

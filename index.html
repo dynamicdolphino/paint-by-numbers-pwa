@@ -5,19 +5,19 @@
 <!-- Defense in depth (GitHub Pages cannot send headers). Inline script/style are part of the single-file design;
      'self' + blob: under worker-src are the service worker and the pipeline worker, data:/blob: are project images, abacus is the like counter. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' data: blob: https://abacus.jasoncameron.dev; worker-src 'self' blob:; child-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
-<title>Paint by Numbers — Free Custom Template Generator from Your Photos</title>
-<meta name="description" content="Turn any photo into a paint-by-numbers template instantly. Free online tool with Apple Pencil support — no uploads, everything stays private on your device.">
+<title>Paint by Numbers: Free Custom Template Generator from Your Photos</title>
+<meta name="description" content="Turn any photo into a paint-by-numbers template instantly. Free online tool with Apple Pencil support. No uploads, everything stays private on your device.">
 <meta name="keywords" content="paint by numbers, custom paint by numbers, photo to paint by numbers, template generator, free, online, iPad, Apple Pencil, paint by numbers from photo">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Paint">
-<meta name="theme-color" content="#0A0A0A">
+<meta name="theme-color" content="#0E0E10">
 <meta name="author" content="Paint by Numbers PWA">
 <!-- Open Graph -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="Paint by Numbers — Custom Templates from Your Photos">
+<meta property="og:title" content="Paint by Numbers: Custom Templates from Your Photos">
 <meta property="og:description" content="Turn any photo into a paint-by-numbers template. Free, private, works offline on any device.">
 <meta property="og:url" content="https://dynamicdolphino.github.io/paint-by-numbers-pwa/">
 <meta property="og:site_name" content="Paint by Numbers">
@@ -26,7 +26,7 @@
 <meta property="og:image:height" content="630">
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Paint by Numbers — Custom Templates from Photos">
+<meta name="twitter:title" content="Paint by Numbers: Custom Templates from Photos">
 <meta name="twitter:image" content="https://dynamicdolphino.github.io/paint-by-numbers-pwa/og-image.png">
 <meta name="twitter:description" content="Free online tool to create paint-by-numbers templates from your own photos. Works offline.">
 <!-- Canonical -->
@@ -60,53 +60,54 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
   :root {
-    --bg: #0A0A0A;
-    --bg-soft: #14110F;
-    --surface: rgba(255,255,255,0.04);
-    --surface-2: rgba(255,255,255,0.08);
-    --border: rgba(255,255,255,0.10);
-    --text: #F5F1EC;
-    --text-dim: rgba(245,241,236,0.65);
-    --text-mute: rgba(245,241,236,0.45);
+    --bg: #0E0E10;
+    --bg-soft: #16161A;
+    --surface: rgba(255,255,255,0.05);
+    --surface-2: rgba(255,255,255,0.09);
+    --border: rgba(255,255,255,0.11);
+    --text: #F4F4F5;
+    --text-dim: rgba(244,244,245,0.68);
+    --text-mute: rgba(244,244,245,0.5);
     --accent: #E8651A;
     --accent-text: #F0762E;        /* accent used as text: needs 4.5:1 on --bg */
     --cta: #C9520E;                /* button fill: white label reaches 4.5:1 */
     --cta-hover: #DB5D14;
-    --accent-soft: rgba(232,101,26,0.18);
-    --header-bg: rgba(10,10,10,0.7);
-    --header-bg-strong: rgba(10,10,10,0.85);
-    --palette-bg: rgba(10,10,10,0.92);
-    --overlay-bg: rgba(10,10,10,0.55);
-    --stage-bg: #1b1917;
+    --accent-soft: rgba(232,101,26,0.16);
+    --header-bg: rgba(14,14,16,0.7);
+    --header-bg-strong: rgba(14,14,16,0.85);
+    --palette-bg: rgba(14,14,16,0.92);
+    --overlay-bg: rgba(14,14,16,0.55);
+    --stage-bg: #1A1A1E;
     --card-shadow: 0 24px 80px rgba(0,0,0,0.5);
-    --hero-glow: rgba(232,101,26,0.12);
     color-scheme: dark;
     --brown: #3D2B1A;
     --canvas-bg: #EEEEEE;
-    --serif: ui-serif, "New York", "Times New Roman", Georgia, serif;
-    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
-    --radius: 14px;
-    --radius-lg: 20px;
+    /* One type family: the system sans (SF Pro on Apple devices). Headlines are the same face, heavier and tighter. */
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, sans-serif;
+    --display: var(--sans);
+    /* Shape rule: interactive controls are pills, media and panels are 16px, small controls 10px. */
+    --radius-sm: 10px;
+    --radius: 16px;
+    --radius-lg: 16px;
   }
   /* Light theme: set by the inline script in <head> (stored choice, else the system setting). */
   :root[data-theme="light"] {
     --bg: #FFFFFF;
-    --bg-soft: #FFFFFF;
-    --surface: #F6F5F2;
-    --surface-2: #ECEAE5;
-    --border: rgba(28,24,21,0.13);
-    --text: #1C1815;
-    --text-dim: rgba(28,24,21,0.76);
-    --text-mute: rgba(28,24,21,0.62);
+    --bg-soft: #FAFAFA;
+    --surface: #F4F4F5;
+    --surface-2: #E9E9EB;
+    --border: rgba(24,24,27,0.12);
+    --text: #18181B;
+    --text-dim: rgba(24,24,27,0.74);
+    --text-mute: rgba(24,24,27,0.6);
     --accent-text: #B5470A;
-    --accent-soft: rgba(232,101,26,0.13);
+    --accent-soft: rgba(232,101,26,0.12);
     --header-bg: rgba(255,255,255,0.82);
     --header-bg-strong: rgba(255,255,255,0.94);
     --palette-bg: rgba(255,255,255,0.97);
     --overlay-bg: rgba(255,255,255,0.72);
-    --stage-bg: #E7E5E0;
-    --card-shadow: 0 18px 50px rgba(28,24,21,0.16);
-    --hero-glow: rgba(232,101,26,0.10);
+    --stage-bg: #E8E8EA;
+    --card-shadow: 0 18px 50px rgba(24,24,27,0.14);
     color-scheme: light;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -140,8 +141,8 @@
     user-select: none;
     -webkit-user-select: none;
   }
-  h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(40px, 7vw, 72px); line-height: 1.05; letter-spacing: -0.02em; margin: 0; }
-  h2 { font-family: var(--serif); font-weight: 500; font-size: 28px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(40px, 7vw, 72px); line-height: 1.05; letter-spacing: -0.03em; margin: 0; }
+  h2 { font-family: var(--display); font-weight: 700; font-size: 28px; margin: 0 0 8px; letter-spacing: -0.025em; }
   p { margin: 0; color: var(--text-dim); }
   button, input[type="file"]::-webkit-file-upload-button {
     font-family: inherit;
@@ -167,14 +168,12 @@
     justify-content: flex-start;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    background:
-      radial-gradient(60% 420px at 50% 0%, var(--hero-glow), transparent 70%),
-      var(--bg);
+    background: var(--bg);
   }
-  .landing { width: 100%; max-width: 1120px; padding: 0 20px 48px; display: flex; flex-direction: column; gap: 56px; animation: fadeSlideIn 0.5s ease both; }
-  .topbar { display: flex; align-items: center; gap: 12px; padding: 16px 0 0; }
-  .brand { display: flex; align-items: center; gap: 10px; font-family: var(--serif); font-size: 18px; margin-right: auto; min-width: 0; }
-  .brand img { width: 32px; height: 32px; border-radius: 9px; }
+  .landing { width: 100%; max-width: 1120px; padding: 0 20px 48px; display: flex; flex-direction: column; gap: 64px; }
+  .topbar { display: flex; align-items: center; gap: 12px; padding: 16px 0 0; min-height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; letter-spacing: -0.01em; margin-right: auto; min-width: 0; }
+  .brand img { width: 32px; height: 32px; border-radius: var(--radius-sm); }
   .brand span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pill-btn {
     display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px;
@@ -183,7 +182,7 @@
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
   }
   .pill-btn:hover { background: var(--surface-2); color: var(--text); }
-  .pill-btn:active { transform: scale(0.97); }
+  .pill-btn:active { transform: translateY(1px) scale(0.98); }
   .pill-btn svg { width: 16px; height: 16px; flex: none; }
   .like-btn svg { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
   .like-btn[aria-pressed="true"] { color: var(--accent-text); border-color: var(--accent-soft); background: var(--accent-soft); }
@@ -195,19 +194,13 @@
   :root[data-theme="light"] .theme-btn .moon { display: block; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  .hero { display: grid; gap: 32px; align-items: center; }
-  .hero-copy { display: flex; flex-direction: column; gap: 20px; align-items: center; text-align: center; }
-  .eyebrow {
-    font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim);
-    background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px;
-  }
-  .hero h1 { font-size: clamp(38px, 6vw, 60px); line-height: 1.05; text-wrap: balance; }
+  /* Hero: copy left, the live photo/template comparison right. Left-aligned on every width. */
+  .hero { display: grid; gap: 36px; align-items: center; }
+  .hero-copy { display: flex; flex-direction: column; gap: 22px; align-items: flex-start; text-align: left; min-width: 0; }
+  .hero h1 { font-size: clamp(32px, 3.3vw, 42px); line-height: 1.04; letter-spacing: -0.035em; text-wrap: balance; }
   .hero h1 em { font-style: normal; color: var(--accent-text); }
-  .hero .lead { font-size: 17px; color: var(--text-dim); max-width: 46ch; }
-  .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-  .hero-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: center; font-size: 13px; color: var(--text-mute); }
-  .hero-meta span { display: inline-flex; align-items: center; gap: 6px; }
-  .hero-meta svg { width: 14px; height: 14px; color: var(--accent-text); }
+  .hero .lead { font-size: 18px; line-height: 1.55; color: var(--text-dim); max-width: 44ch; }
+  .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
   .text-link { color: var(--text-dim); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; }
   .text-link:hover { color: var(--text); }
 
@@ -222,7 +215,7 @@
     transition: transform 0.15s ease, background 0.15s ease;
   }
   .btn-primary:hover { background: var(--cta-hover); }
-  .btn-primary:active { transform: scale(0.97); background: var(--cta); }
+  .btn-primary:active { transform: translateY(1px) scale(0.98); background: var(--cta); }
   .btn-primary:disabled, .btn-primary.loading {
     opacity: 0.6; pointer-events: none; cursor: not-allowed;
   }
@@ -240,16 +233,25 @@
     border: 1px solid var(--border);
     font-size: 15px;
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease, transform 0.15s ease;
   }
-  .btn-ghost:hover, .btn-ghost:active { background: var(--surface-2); }
+  .btn-ghost:hover { background: var(--surface-2); }
+  .btn-ghost:active { background: var(--surface-2); transform: translateY(1px) scale(0.98); }
   label.btn-primary:focus-within, label.btn-ghost:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .import-btn {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; margin-top: -8px;
+    border-radius: 999px; border: 1px dashed var(--border); color: var(--text-dim); font-size: 14px; cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .import-btn:hover { background: var(--surface); color: var(--text); }
+  .import-btn:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .import-btn svg { width: 16px; height: 16px; }
 
   /* Before/after: the range input on top is the whole interaction (drag, tap, arrow keys). */
   .compare { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
   .compare-frame {
-    position: relative; aspect-ratio: 4 / 3; border-radius: var(--radius-lg); overflow: hidden;
-    border: 1px solid var(--border); background: #111; box-shadow: var(--card-shadow);
+    position: relative; aspect-ratio: 4 / 3; border-radius: var(--radius); overflow: hidden;
+    border: 1px solid var(--border); background: var(--surface-2); box-shadow: var(--card-shadow);
     --pos: 38%;
   }
   .compare-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -257,13 +259,13 @@
   .compare-frame .divider { position: absolute; top: 0; bottom: 0; left: var(--pos); width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.25); pointer-events: none; }
   .compare-frame .knob {
     position: absolute; top: 50%; left: var(--pos); width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%;
-    background: #fff; color: #111; display: flex; align-items: center; justify-content: center; pointer-events: none;
+    background: #fff; color: #18181B; display: flex; align-items: center; justify-content: center; pointer-events: none;
     box-shadow: 0 4px 16px rgba(0,0,0,0.4);
   }
   .compare-frame .knob svg { width: 22px; height: 22px; }
   .compare-frame .chip {
-    position: absolute; top: 12px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; padding: 5px 10px; border-radius: 999px;
-    background: rgba(10,10,10,0.72); color: #fff; pointer-events: none;
+    position: absolute; top: 12px; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; padding: 5px 10px; border-radius: 999px;
+    background: rgba(14,14,16,0.72); color: #fff; pointer-events: none;
   }
   .compare-frame .chip.l { left: 12px; } .compare-frame .chip.r { right: 12px; }
   .compare-frame input[type="range"] {
@@ -272,102 +274,120 @@
   .compare-frame:focus-within { outline: 2px solid var(--accent); outline-offset: 3px; }
   .compare figcaption, .compare .caption { font-size: 13px; color: var(--text-mute); text-align: center; }
 
-  .section-head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
-  .section-head h2 { font-size: clamp(24px, 3vw, 30px); margin: 0; }
-  .section-head p { font-size: 15px; }
-  .kicker { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-text); }
+  /* Sections: headline only, no label above it. */
+  .section-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; text-align: left; }
+  .section-head h2 { font-size: clamp(26px, 3.2vw, 36px); line-height: 1.1; letter-spacing: -0.03em; margin: 0; max-width: 26ch; text-wrap: balance; }
+  .section-head p { font-size: 16px; max-width: 58ch; }
 
-  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
-  .feature {
-    display: flex; flex-direction: column; gap: 8px; padding: 20px; text-align: left;
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  /* How it works: three cells for three steps. Step 1 is the tall one on wide screens. */
+  .steps { display: grid; gap: 22px; list-style: none; margin: 0; padding: 0; }
+  .steps li { display: flex; flex-direction: column; gap: 14px; min-width: 0; text-align: left; }
+  .steps li > img {
+    width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; display: block;
+    border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface-2);
   }
-  .feature .ico { width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); color: var(--accent-text); display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
-  .feature .ico svg { width: 20px; height: 20px; }
-  .feature h3 { margin: 0; font-size: 16px; font-weight: 600; font-family: var(--sans); }
-  .feature p { font-size: 14px; line-height: 1.5; }
-
-  /* Steps: a real sequence — the markers are numbered paint pots in colors of the example palette. */
-  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; list-style: none; margin: 0; padding: 0; }
-  .steps li {
-    display: flex; flex-direction: column; text-align: left; overflow: hidden;
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-  }
-  .steps li > img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; display: block; border-bottom: 1px solid var(--border); background: var(--surface-2); }
-  .step-body { display: flex; gap: 16px; align-items: flex-start; padding: 20px 22px 22px; }
+  .step-body { display: flex; gap: 14px; align-items: flex-start; }
   .pot {
-    flex: none; width: 52px; height: 52px; border-radius: 50%; background: var(--pot); color: var(--pot-ink);
-    font-family: var(--serif); font-size: 24px; display: flex; align-items: center; justify-content: center;
-    box-shadow: inset 0 -6px 0 rgba(0,0,0,0.16), 0 0 0 4px var(--bg), 0 0 0 5px var(--border);
+    flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--pot); color: var(--pot-ink);
+    font-weight: 700; font-size: 19px; display: flex; align-items: center; justify-content: center;
+    box-shadow: inset 0 -5px 0 rgba(0,0,0,0.16);
   }
-  .steps strong { display: block; font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .steps strong { display: block; font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 4px; letter-spacing: -0.01em; }
   .step-body div span { font-size: 15px; line-height: 1.5; color: var(--text-dim); }
-  .how-more { margin-top: 10px; text-align: center; }
+  .how-more { margin-top: 16px; }
 
-  .import-btn {
-    display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; margin-top: -6px;
-    border-radius: 999px; border: 1px dashed var(--border); color: var(--text-dim); font-size: 14px; cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-  .import-btn:hover { background: var(--surface); color: var(--text); }
-  .import-btn:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .import-btn svg { width: 16px; height: 16px; }
-
-  .showcase { display: flex; flex-direction: column; gap: 28px; margin-bottom: 28px; }
-  .show-row { display: grid; gap: 18px; align-items: center; }
-  .show-row img {
-    width: 100%; height: auto; display: block; border-radius: var(--radius-lg);
+  /* Showcase: two split rows, then one full-width row for the PDF. */
+  .showcase { display: flex; flex-direction: column; gap: 44px; }
+  .show-row { display: grid; gap: 20px; align-items: center; }
+  .show-row img, .show-wide img {
+    width: 100%; height: auto; display: block; border-radius: var(--radius);
     border: 1px solid var(--border); box-shadow: var(--card-shadow); background: var(--surface-2);
   }
   .show-copy { text-align: left; }
-  .show-copy h3 { font-family: var(--serif); font-weight: 500; font-size: clamp(22px, 2.6vw, 28px); line-height: 1.15; margin: 0 0 10px; }
+  .show-copy h3 { font-weight: 650; font-size: clamp(22px, 2.4vw, 28px); line-height: 1.15; letter-spacing: -0.025em; margin: 0 0 10px; }
   .show-copy p { font-size: 16px; line-height: 1.6; max-width: 46ch; }
+  .show-wide { display: flex; flex-direction: column; gap: 22px; }
+  .show-wide .show-copy p { max-width: 58ch; }
   @media (min-width: 900px) {
-    .showcase { gap: 56px; margin-bottom: 56px; }
-    .show-row { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 48px; }
+    .showcase { gap: 80px; }
+    .show-row { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 56px; }
     .show-row.flip img { order: 2; }
   }
 
-  .support {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; justify-content: space-between; text-align: left;
-    padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--accent-soft);
-    background: linear-gradient(135deg, var(--accent-soft), var(--surface));
+  /* Facts: one featured statement plus two short ones, no cards. */
+  .facts { display: grid; gap: 28px; }
+  .fact { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+  .fact .ico { width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent-text); display: flex; align-items: center; justify-content: center; margin-bottom: 6px; }
+  .fact .ico svg { width: 20px; height: 20px; }
+  .fact h3 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+  .fact p { font-size: 15px; line-height: 1.55; max-width: 44ch; }
+  .fact-lead h3 { font-size: clamp(24px, 2.6vw, 30px); letter-spacing: -0.03em; line-height: 1.15; }
+  .fact-lead p { font-size: 17px; max-width: 40ch; }
+  .facts-rest { display: flex; flex-direction: column; }
+  .facts-rest .fact + .fact { border-top: 1px solid var(--border); padding-top: 24px; margin-top: 24px; }
+  @media (min-width: 900px) {
+    .facts { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 64px; align-items: start; }
   }
-  .support h2 { font-size: 22px; margin: 0 0 4px; }
-  .support p { font-size: 14px; max-width: 52ch; }
-  .support .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+  /* Support: the one tinted panel on the page. */
+  .support {
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 22px;
+    padding: 44px 24px; border-radius: var(--radius); background: var(--accent-soft);
+  }
+  .support h2 { font-size: clamp(22px, 2.6vw, 28px); letter-spacing: -0.025em; margin: 0 0 8px; }
+  .support p { font-size: 16px; max-width: 46ch; margin: 0 auto; }
+  .support .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
   .footnote { font-size: 12px; color: var(--text-mute); text-align: center; line-height: 1.6; }
   .footnote a { color: var(--text-dim); }
 
   .hero-projects { display: flex; flex-direction: column; min-width: 0; }
   .hero-projects[hidden] { display: none; }
   .continue-link { margin: 0; font-size: 14px; }
+  .continue-link .text-link { gap: 0.3em; } /* inline-flex swallows the space before the count */
   .continue-link[hidden] { display: none; }
   .resume-list {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px;
   }
   .resume-item {
     display: flex; flex-direction: column; gap: 12px; min-width: 0;
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 12px; text-align: left;
   }
-  .resume-item img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; background: var(--surface-2); }
+  .resume-item img { width: 100%; height: 110px; object-fit: cover; border-radius: var(--radius-sm); background: var(--surface-2); }
   .resume-item .meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .resume-item .meta .name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .resume-item .meta .when { font-size: 12px; color: var(--text-mute); }
   .resume-item .actions { display: flex; gap: 8px; margin-top: auto; }
   .resume-item .actions button { flex: 1; min-height: 44px; padding: 0; font-size: 14px; }
-  .resume-item .del { flex: 0 0 44px !important; color: var(--text-dim); background: var(--surface-2); border: none; border-radius: 12px; cursor: pointer; }
+  .resume-item .del { flex: 0 0 44px !important; color: var(--text-dim); background: var(--surface-2); border: none; border-radius: var(--radius-sm); cursor: pointer; }
+
+  /* Motion: a short entry stagger in the hero, then sections rise as they scroll into view.
+     Nothing loops; everything is off under prefers-reduced-motion. */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-copy > * { animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    .hero-copy > :nth-child(2) { animation-delay: 0.06s; }
+    .hero-copy > :nth-child(3) { animation-delay: 0.12s; }
+    .hero-copy > :nth-child(4) { animation-delay: 0.18s; }
+    .hero-copy > :nth-child(5) { animation-delay: 0.24s; }
+    .hero .compare { animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both; }
+    @supports (animation-timeline: view()) {
+      .reveal { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 35%; }
+    }
+  }
 
   @media (min-width: 900px) {
-    .landing { padding: 0 32px 64px; gap: 72px; }
-    .hero { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 56px; padding-top: 16px; }
-    .hero-copy { align-items: flex-start; text-align: left; }
-    .hero-buttons, .hero-meta { justify-content: flex-start; }
-    .section-head { text-align: left; }
+    .landing { padding: 0 32px 64px; gap: 96px; }
+    .hero { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 56px; padding-top: 24px; }
+    .steps { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); grid-template-rows: auto auto; }
+    .steps li:first-child { grid-row: 1 / 3; }
+    .steps li:first-child > img { flex: 1; min-height: 0; aspect-ratio: auto; }
+    .steps li:not(:first-child) > img { aspect-ratio: 16 / 10; }
   }
   @media (max-width: 899px) {
-    .section-head { text-align: center; align-items: center; }
     .coffee-btn .label-long { display: none; }
     .topbar { gap: 8px; }
     .topbar .pill-btn { padding: 0 12px; }
@@ -388,10 +408,10 @@
     border-bottom: 1px solid var(--border);
     position: relative; z-index: 10;
   }
-  .prep-header .title, .paint-header .title { flex: 1; font-family: var(--serif); font-size: 19px; }
+  .prep-header .title, .paint-header .title { flex: 1; font-family: var(--display); font-weight: 600; letter-spacing: -0.01em; font-size: 19px; }
   .icon-btn {
     width: 40px; height: 40px;
-    border-radius: 12px;
+    border-radius: var(--radius-sm);
     display: flex; align-items: center; justify-content: center;
     background: var(--surface);
     color: var(--text);
@@ -403,28 +423,33 @@
   .prep-body {
     flex: 1; min-height: 0;
     display: flex; flex-direction: column;
-    padding: 18px;
+    padding: 16px;
     gap: 16px;
   }
   .preview-wrap {
     flex: 1; min-height: 0;
-    background: var(--bg-soft);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
     display: flex; align-items: center; justify-content: center;
     overflow: hidden;
   }
-  .preview-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .preview-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: var(--radius); box-shadow: var(--card-shadow); }
   .controls {
-    display: flex; flex-direction: column; gap: 18px;
+    display: flex; flex-direction: column; gap: 14px;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius);
     padding: 18px;
   }
+  .controls-head { display: flex; flex-direction: column; gap: 2px; }
+  .controls-head .label { font-size: 13px; color: var(--text-mute); }
+  .controls-head .value { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); font-variant-numeric: tabular-nums; }
+  .preset-desc { font-size: 14px; color: var(--text-dim); min-height: 1.5em; }
+  .controls .btn-primary { width: 100%; text-align: center; margin-top: 4px; }
+  @media (min-width: 900px) {
+    .prep-body { flex-direction: row; padding: 20px 24px 24px; gap: 24px; }
+    .controls { width: 340px; flex: none; }
+    .controls .btn-primary { margin-top: auto; }
+  }
   .control-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
-  .control-row .label { font-size: 14px; color: var(--text-dim); }
-  .control-row .value { font-size: 14px; color: var(--accent-text); font-variant-numeric: tabular-nums; }
   input[type="range"] {
     -webkit-appearance: none; appearance: none;
     width: 100%; height: 4px;
@@ -492,9 +517,11 @@
     .paint-header .project-title { order: 2; flex: 1 0 100%; flex-direction: row; align-items: baseline; gap: 10px; }
     .paint-header #project-name { flex: 1 1 auto; width: auto; }
     /* Tools in one row along the top of the stage; fitCanvas() keeps the canvas below it. */
-    #screen-paint .toolbar-floating { flex-direction: row; align-items: center; left: 8px; top: 8px; right: 8px; }
-    #screen-paint .toolbar-floating .control-row { flex: 1; min-width: 0; }
-    .toolbar-floating #brush-size { width: 100% !important; }
+    #screen-paint .toolbar-floating { flex-direction: row; align-items: stretch; left: 8px; top: 8px; right: 8px; gap: 6px; }
+    #screen-paint .tool-group { flex-direction: row; }
+    #screen-paint .brush-size { flex: 1; min-width: 0; padding: 4px 10px; }
+    #screen-paint .brush-size input[type="range"] { width: 100%; height: 4px; writing-mode: horizontal-tb; direction: ltr; }
+    #screen-paint .brush-dot { width: 22px; height: 22px; }
   }
   #canvas-hint { opacity: 0; transition: opacity 0.25s ease; pointer-events: none; }
   #canvas-hint.on { opacity: 1; }
@@ -537,7 +564,7 @@
   .swatch {
     flex: 0 0 auto;
     width: 56px; height: 56px;
-    border-radius: 14px;
+    border-radius: var(--radius-sm);
     position: relative;
     border: 2px solid transparent;
     display: flex; align-items: center; justify-content: center;
@@ -548,15 +575,27 @@
   .swatch.active { border-color: var(--text); transform: scale(1.06); box-shadow: 0 0 0 2px var(--accent); }
   .toolbar-floating {
     position: absolute; left: 12px; top: 12px;
-    display: flex; flex-direction: column; gap: 8px;
+    display: flex; flex-direction: column; gap: 10px;
     z-index: 5;
     touch-action: manipulation;
   }
-  .toolbar-floating input[type="range"] {
-    touch-action: manipulation;
+  .toolbar-floating input[type="range"] { touch-action: manipulation; }
+  /* Tools sit in small glass groups: paint tools, history, then the brush size with a live dot. */
+  .tool-group {
+    display: flex; flex-direction: column; gap: 2px; padding: 4px;
+    border-radius: var(--radius); border: 1px solid var(--border);
+    background: var(--header-bg-strong);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
   }
-  .toolbar-floating .icon-btn { background: rgba(10,10,10,0.7); color: #fff; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .toolbar-floating .icon-btn { width: 44px; height: 44px; background: transparent; color: var(--text); }
+  .toolbar-floating .icon-btn:hover { background: var(--surface-2); }
   .toolbar-floating .icon-btn.active { background: var(--accent); color: #fff; }
+  .toolbar-floating .icon-btn:disabled { opacity: 0.35; }
+  .brush-size { --brush: 14; align-items: center; padding: 12px 8px; gap: 10px; }
+  .brush-size input[type="range"] { width: 4px; height: 96px; writing-mode: vertical-lr; direction: rtl; }
+  .brush-dot { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; }
+  .brush-dot::before { content: ""; width: calc(var(--brush) * 0.7px); height: calc(var(--brush) * 0.7px); border-radius: 50%; background: var(--text); }
 
   .toast {
     position: fixed; left: 50%; bottom: 140px;
@@ -601,8 +640,7 @@
     display: flex; flex-direction: column; gap: 10px;
   }
   .modal-card h3 {
-    font-family: var(--serif);
-    font-weight: 500;
+    font-family: var(--display); font-weight: 700; letter-spacing: -0.02em;
     font-size: 22px;
     margin: 0;
   }
@@ -611,6 +649,7 @@
   .modal-card .btn-ghost { width: 100%; }
 
   /* ---------- PRESET PILLS ---------- */
+  /* Phones: a horizontal row of pills. From 900px the panel sits beside the preview and the pills become a vertical list. */
   .preset-pills {
     display: flex;
     gap: 8px;
@@ -619,37 +658,39 @@
     padding: 2px 0 6px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    margin: 0 -4px;
   }
   .preset-pills::-webkit-scrollbar { display: none; }
   .preset-pill {
     flex: 0 0 auto;
-    width: 80px;
-    min-height: 78px;
-    border-radius: 14px;
+    min-width: 96px;
+    min-height: 60px;
+    border-radius: var(--radius-sm);
     border: 1px solid var(--border);
-    background: var(--surface);
+    background: var(--bg);
     color: var(--text);
-    padding: 10px 6px;
+    padding: 10px 12px;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    gap: 4px;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    gap: 3px;
+    text-align: left;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
   }
-  .preset-pill:active { transform: scale(0.97); }
-  .preset-pill .preset-label { font-size: 13px; font-weight: 500; line-height: 1.1; }
-  .preset-pill .preset-k     { font-size: 11px; color: var(--text-mute); font-variant-numeric: tabular-nums; }
-  .preset-pill .preset-hint  { font-size: 10px; color: var(--text-mute); line-height: 1.1; }
+  .preset-pill:hover { border-color: var(--text-mute); }
+  .preset-pill:active { transform: scale(0.98); }
+  .preset-pill .preset-label { font-size: 15px; font-weight: 600; line-height: 1.1; letter-spacing: -0.01em; }
+  .preset-pill .preset-k     { font-size: 12px; color: var(--text-mute); font-variant-numeric: tabular-nums; }
   .preset-pill.active {
-    border: 2px solid var(--accent);
+    border-color: var(--accent);
     background: var(--accent-soft);
-    padding: 9px 5px; /* compensate for the +1px border so layout doesn't jump */
-    box-shadow: 0 0 0 4px var(--accent-soft);
+    box-shadow: inset 0 0 0 1px var(--accent);
   }
-  .preset-pill.active .preset-k,
-  .preset-pill.active .preset-hint { color: var(--accent-text); }
+  .preset-pill.active .preset-k { color: var(--accent-text); }
+  @media (min-width: 900px) {
+    .preset-pills { flex-direction: column; overflow: visible; padding: 0; gap: 6px; }
+    .preset-pill { flex-direction: row; align-items: center; justify-content: space-between; min-height: 48px; width: 100%; padding: 0 14px; }
+  }
 
   /* ---------- ICON LABELS (paint/prep header) ---------- */
   /* Small label under each header icon so first-time users know what a button does. */
@@ -710,10 +751,10 @@
     display: flex; flex-direction: column; gap: 12px;
   }
   .tutorial-content .step-counter {
-    font-size: 12px; color: var(--accent-text); letter-spacing: 0.06em; text-transform: uppercase;
+    font-size: 13px; color: var(--accent-text); font-weight: 500;
   }
   .tutorial-content h3 {
-    font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 0;
+    font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; font-size: 22px; margin: 0;
   }
   .tutorial-content p { font-size: 14px; line-height: 1.55; color: var(--text-dim); margin: 0; }
   .tutorial-dots {
@@ -800,9 +841,8 @@
 
     <div class="hero">
       <div class="hero-copy">
-        <div class="eyebrow">Free · no sign-up · works offline</div>
         <h1>Turn your photo into a <em>paint-by-numbers</em> template.</h1>
-        <p class="lead">Pick a photo, choose how detailed it should be, and paint it right here with finger, mouse or Apple Pencil — or print it as a PDF with a color guide.</p>
+        <p class="lead">Pick a photo, choose the detail level, then paint it on screen with Apple Pencil or print it as a PDF.</p>
         <div class="hero-buttons">
           <label class="btn-primary">
             Choose photo
@@ -815,11 +855,7 @@
           Import a backup (.pbn.json)
           <input type="file" id="import-input" accept=".json,.pbn,application/json" style="position:absolute;opacity:0;width:1px;height:1px">
         </label>
-        <p class="continue-link" id="continue-link" hidden><a class="text-link" href="#hero-projects">Continue painting — <span id="continue-count"></span></a></p>
-        <div class="hero-meta">
-          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Your photo never leaves this device</span>
-          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Ready in seconds</span>
-        </div>
+        <p class="continue-link" id="continue-link" hidden><a class="text-link" href="#hero-projects">Continue painting: <span id="continue-count"></span></a></p>
       </div>
 
       <figure class="compare" style="margin:0">
@@ -832,27 +868,25 @@
           <span class="knob" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 3 12 9 18"/><polyline points="15 6 21 12 15 18"/></svg></span>
           <input type="range" id="compare-range" min="0" max="100" value="38" step="1" aria-label="Compare photo and template">
         </div>
-        <figcaption>Drag to compare — made with the “Standard” level, 24 colors.</figcaption>
+        <figcaption>Drag to compare. Standard level, 24 colors.</figcaption>
       </figure>
     </div>
 
-    <section class="hero-projects" id="hero-projects" aria-labelledby="projects-title">
-      <div class="section-head" id="projects-title">
-        <span class="kicker">Continue</span>
-        <h2>Your projects</h2>
+    <section class="hero-projects reveal" id="hero-projects" aria-labelledby="projects-title">
+      <div class="section-head">
+        <h2 id="projects-title">Your projects</h2>
       </div>
       <div class="resume-list" id="resume-list"></div>
     </section>
 
-    <section class="how" aria-labelledby="how-title">
+    <section class="how reveal" aria-labelledby="how-title">
       <div class="section-head">
-        <span class="kicker">How it works</span>
         <h2 id="how-title">From photo to painting in three steps</h2>
       </div>
       <ol class="steps">
         <li>
           <img src="example.jpg" width="1200" height="900" loading="lazy" alt="A photo of a sleeping cat">
-          <div class="step-body"><span class="pot" style="--pot:#2e4175;--pot-ink:#fff" aria-hidden="true">1</span><div><strong>Choose a photo</strong><span>From your library, camera or files. It stays on your device — nothing is uploaded.</span></div></div>
+          <div class="step-body"><span class="pot" style="--pot:#2e4175;--pot-ink:#fff" aria-hidden="true">1</span><div><strong>Choose a photo</strong><span>From your library, camera or files. It stays on your device, nothing is uploaded.</span></div></div>
         </li>
         <li>
           <img src="step-2.jpg" width="720" height="540" loading="lazy" alt="The photo turned into outlines with a number in every field">
@@ -860,15 +894,14 @@
         </li>
         <li>
           <img src="step-3.jpg" width="720" height="540" loading="lazy" alt="The template with every field filled in its color">
-          <div class="step-body"><span class="pot" style="--pot:#704e8f;--pot-ink:#fff" aria-hidden="true">3</span><div><strong>Paint or print</strong><span>Tap a color and fill the fields with its number — or print the template with its color guide.</span></div></div>
+          <div class="step-body"><span class="pot" style="--pot:#704e8f;--pot-ink:#fff" aria-hidden="true">3</span><div><strong>Paint or print</strong><span>Tap a color and fill its numbered fields, or print the template with its color guide.</span></div></div>
         </li>
       </ol>
       <p class="how-more"><button class="text-link" id="howto-btn" type="button">Show me step by step</button></p>
     </section>
 
-    <section aria-labelledby="features-title">
+    <section class="reveal" aria-labelledby="features-title">
       <div class="section-head">
-        <span class="kicker">What you can do</span>
         <h2 id="features-title">See it before you try it</h2>
       </div>
       <div class="showcase">
@@ -876,34 +909,54 @@
           <img src="feat-levels.jpg" width="1200" height="580" loading="lazy" alt="The same photo as a template with 8 colors and big fields, and with 50 colors and fine detail">
           <div class="show-copy">
             <h3>Easy for kids, detailed for you</h3>
-            <p>Five levels from “Kids” (8 colors, big shapes) to “Fine” (50 colors). Same photo, very different template — try a level, go back, try another.</p>
+            <p>Five levels from “Kids” (8 colors, big shapes) to “Fine” (50 colors). Same photo, very different template. Try a level, go back, try another.</p>
           </div>
         </article>
         <article class="show-row flip">
           <img src="feat-paint.jpg" width="1200" height="760" loading="lazy" alt="Paint screen: the numbered template partly filled in, tools on the left, the numbered color palette at the bottom">
           <div class="show-copy">
             <h3>Paint right on the screen</h3>
-            <p>Pick a numbered color and paint with finger, mouse or Apple Pencil — pressure-sensitive, with palm rejection, zoom, eraser and 30 undo steps. Every stroke is saved automatically.</p>
+            <p>Pick a numbered color and paint with finger, mouse or Apple Pencil. Pressure-sensitive, with palm rejection, zoom, eraser and 30 undo steps. Every stroke is saved automatically.</p>
           </div>
         </article>
-        <article class="show-row">
-          <img src="feat-print.jpg" width="1200" height="640" loading="lazy" alt="Exported PDF: page one with the numbered template, page two with the color guide and hex codes">
+        <article class="show-wide">
           <div class="show-copy">
             <h3>Or print it and use real paint</h3>
             <p>One tap exports an A4 PDF: the numbered template on page one, the color guide with every swatch and hex code on page two. Or send it straight to your printer.</p>
           </div>
+          <img src="feat-print.jpg" width="1200" height="640" loading="lazy" alt="Exported PDF: page one with the numbered template, page two with the color guide and hex codes">
         </article>
-      </div>
-      <div class="feature-grid">
-        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h3>Private by design</h3><p>The template is computed in your browser. No upload, no account.</p></div>
-        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg></div><h3>Backup and move</h3><p>Save a project as a backup file and import it on another device to continue painting.</p></div>
-        <div class="feature"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div><h3>Installs like an app</h3><p>Add it to your home screen from the share menu. It then opens full screen and works without internet.</p></div>
       </div>
     </section>
 
-    <section class="support" aria-labelledby="support-title">
+    <section class="reveal" aria-labelledby="facts-title">
+      <div class="section-head">
+        <h2 id="facts-title">Private, portable, offline</h2>
+      </div>
+      <div class="facts">
+        <div class="fact fact-lead">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <h3>Private by design</h3>
+          <p>The template is computed in your browser in a few seconds. Your photo never leaves this device. No upload, no account.</p>
+        </div>
+        <div class="facts-rest">
+          <div class="fact">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg></div>
+            <h3>Backup and move</h3>
+            <p>Save a project as a backup file and import it on another device to continue painting.</p>
+          </div>
+          <div class="fact">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+            <h3>Installs like an app</h3>
+            <p>Add it to your home screen from the share menu. It then opens full screen and works without internet.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="support reveal" aria-labelledby="support-title">
       <div>
-        <h2 id="support-title">Free, no ads — made by one person</h2>
+        <h2 id="support-title">Free, no ads, made by one person</h2>
         <p>If this tool made you smile, leave a like or buy me a coffee. It keeps the project alive.</p>
       </div>
       <div class="actions">
@@ -932,16 +985,17 @@
       <span class="icon-label">Back</span>
     </button>
     <div class="title">Setup</div>
-    <button class="btn-primary" id="generate-btn" style="padding:10px 20px;font-size:15px">Generate template</button>
   </div>
   <div class="prep-body">
     <div class="preview-wrap"><img id="preview-img" alt=""></div>
     <div class="controls">
-      <div class="control-row">
+      <div class="controls-head">
         <span class="label">Detail level</span>
         <span class="value" id="preset-current">Standard · 24 colors</span>
       </div>
-      <div class="preset-pills" id="preset-pills"></div>
+      <div class="preset-pills" id="preset-pills" role="group" aria-label="Detail level"></div>
+      <p class="preset-desc" id="preset-desc"></p>
+      <button class="btn-primary" id="generate-btn" type="button">Generate template</button>
       <div class="progress" id="progress"><div class="progress-bar" id="progress-bar"></div></div>
       <div class="progress-label hidden" id="progress-label"></div>
     </div>
@@ -981,21 +1035,29 @@
     </button>
   </div>
   <div class="paint-stage" id="paint-stage">
-    <div class="toolbar-floating">
+    <div class="toolbar-floating" role="toolbar" aria-label="Painting tools">
+      <div class="tool-group">
       <button class="icon-btn active" id="tool-brush" aria-label="Brush">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.06 11.9l8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04 0-1.67-1.34-3.02-3-3.02z"/></svg>
       </button>
       <button class="icon-btn" id="tool-eraser" aria-label="Eraser">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16c-.78-.78-.78-2.05 0-2.83L13.17 3a2 2 0 0 1 2.83 0L21 8a2 2 0 0 1 0 2.83L10.83 21"/><line x1="18" y1="13" x2="9" y2="4"/></svg>
       </button>
+      </div>
+      <div class="tool-group">
       <button class="icon-btn" id="tool-undo" aria-label="Undo" disabled style="opacity:0.4">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>
       </button>
       <button class="icon-btn" id="tool-clear" aria-label="Clear painting" title="Wipe the painting (can be undone)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
       </button>
-      <div class="control-row" style="background:rgba(10,10,10,0.7);padding:8px;border-radius:12px;flex-direction:column;align-items:stretch;gap:6px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)">
-        <input type="range" id="brush-size" min="2" max="40" step="1" value="14" style="width:90px">
+      <button class="icon-btn" id="tool-fit" aria-label="Fit to screen" title="Show the whole picture again">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+      </button>
+      </div>
+      <div class="tool-group brush-size">
+        <span class="brush-dot" aria-hidden="true"></span>
+        <input type="range" id="brush-size" min="2" max="40" step="1" value="14" aria-label="Brush size">
       </div>
     </div>
     <div class="canvas-stack" id="canvas-stack">
@@ -1175,7 +1237,7 @@ async function loadFromFile(file) {
     await img.decode();
   } catch (_) {
     URL.revokeObjectURL(url);
-    toast('Could not read this image — try JPEG or PNG', 3000);
+    toast('Could not read this image. Try JPEG or PNG.', 3000);
     return;
   }
   // skaliere auf max. 2000 px Längsseite (Performance auf iPad)
@@ -1367,8 +1429,7 @@ function renderPresetPills() {
     pill.setAttribute('aria-label', `${preset.label}: ${preset.k} colors, ${preset.hint}`);
     pill.innerHTML =
       `<span class="preset-label">${preset.label}</span>` +
-      `<span class="preset-k">${preset.k} colors</span>` +
-      `<span class="preset-hint">${preset.hint}</span>`;
+      `<span class="preset-k">${preset.k} colors</span>`;
     pill.addEventListener('click', () => selectPreset(preset.id));
     wrap.appendChild(pill);
   }
@@ -1388,7 +1449,18 @@ function updatePresetSummary() {
   const p = PRESETS.find((x) => x.id === state.preset) || PRESETS[2];
   const out = $('#preset-current');
   if (out) out.textContent = `${p.label} · ${p.k} colors`;
+  const desc = $('#preset-desc');
+  if (desc) desc.textContent = PRESET_DESC[p.id] || p.hint;
 }
+
+// One sentence per level for the setup panel (the pill itself only shows name and color count).
+const PRESET_DESC = {
+  kids: 'Big, simple shapes. Good for children and a first try.',
+  easy: 'Larger fields, forgiving with the brush.',
+  standard: 'The default: balanced detail for most photos.',
+  detailed: 'Smaller fields, more colors, closer to the photo.',
+  fine: 'The most detail. Takes longer to generate and to paint.'
+};
 
 let _isGenerating = false;
 $('#prep-back').addEventListener('click', () => {
@@ -1416,7 +1488,7 @@ $('#generate-btn').addEventListener('click', async () => {
     await generateTemplate(preset.k, preset.minPxFactor);
   } catch (err) {
     console.error('generateTemplate error', err);
-    toast('Generation failed — try again', 3000);
+    toast('Generation failed. Try again.', 3000);
   } finally {
     // --- unlock UI ---
     _isGenerating = false;
@@ -2302,7 +2374,9 @@ $('#tool-eraser').addEventListener('click', () => {
 });
 $('#brush-size').addEventListener('input', (e) => {
   state.brushSize = +e.target.value;
+  e.target.parentElement.style.setProperty('--brush', state.brushSize);
 });
+$('#tool-fit').addEventListener('click', fitCanvas);
 $('#tool-undo').addEventListener('click', undo);
 
 // Clear: second tap within 3 s confirms; the wipe is one undo step.
@@ -2765,7 +2839,7 @@ async function exportPDF() {
     // -------- Page 2: color legend --------
     const page2 = pdfDoc.addPage([A4_W, A4_H]);
 
-    page2.drawText('Color guide — ' + title, {
+    page2.drawText('Color guide: ' + title, {
       x: MARGIN,
       y: A4_H - MARGIN,
       size: 13,
@@ -2912,7 +2986,7 @@ const tutorialSteps = [
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
     img: 'example.jpg', alt: 'A photo of a sleeping cat',
     title: '1. Upload your photo',
-    text: 'Choose any photo from your device. Everything runs locally in your browser — your photos are never uploaded to any server.'
+    text: 'Choose any photo from your device. Everything runs locally in your browser. Your photos are never uploaded to any server.'
   },
   {
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/></svg>',
@@ -3008,7 +3082,7 @@ function applyTheme(t) {
   document.documentElement.dataset.theme = t;
   $('#theme-toggle').setAttribute('aria-label', t === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = t === 'light' ? '#FFFFFF' : '#0A0A0A';
+  if (meta) meta.content = t === 'light' ? '#FFFFFF' : '#0E0E10';
 }
 applyTheme(document.documentElement.dataset.theme);
 $('#theme-toggle').addEventListener('click', () => {
