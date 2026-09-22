@@ -46,6 +46,78 @@
   "featureList": ["Photo to paint-by-numbers conversion", "Apple Pencil support", "Offline capable", "PDF export", "Project backup"]
 }
 </script>
+<script type="application/ld+json">
+{
+"@context": "https://schema.org",
+"@type": "FAQPage",
+"mainEntity": [
+{
+"@type": "Question",
+"name": "Which photos work best?",
+"acceptedAnswer": {
+"@type": "Answer",
+"text": "JPEG and PNG from any device. A clear subject with few busy areas gives fields that are easier to paint; the app scales large photos down by itself."
+}
+},
+{
+"@type": "Question",
+"name": "What do the detail levels mean?",
+"acceptedAnswer": {
+"@type": "Answer",
+"text": "The number of colors: Kids 8, Easy 16, Standard 24, Detailed 36, Fine 50. Fewer colors mean bigger fields and a quicker painting; more colors stay closer to the photo."
+}
+},
+{
+"@type": "Question",
+"name": "Do I have to stay inside the lines?",
+"acceptedAnswer": {
+"@type": "Answer",
+"text": "No. The brush paints wherever you put it, like real paint. The number in each field tells you which color belongs there, and picking a color briefly flashes all of its fields."
+}
+},
+{
+"@type": "Question",
+"name": "How do zoom, undo and clear work?",
+"acceptedAnswer": {
+"@type": "Answer",
+"text": "Pinch with two fingers, or hold Ctrl and scroll with a mouse. The frame button fits the picture to the screen again. Undo keeps the last 30 strokes; Clear needs a second tap within three seconds and can be undone."
+}
+},
+{
+"@type": "Question",
+"name": "Does the Apple Pencil change anything?",
+"acceptedAnswer": {
+"@type": "Answer",
+"text": "Yes. Pressure changes the stroke width, and touches from your resting hand are ignored while the pencil is drawing. Finger and mouse work the same way without pressure."
+}
+},
+{
+"@type": "Question",
+"name": "Is my progress saved?",
+"acceptedAnswer": {
+"@type": "Answer",
+"text": "Every stroke is saved on this device automatically and the project appears under “Your projects”. Backup writes a .pbn.json file you can import on another device to continue there."
+}
+},
+{
+"@type": "Question",
+"name": "How do I print the template?",
+"acceptedAnswer": {
+"@type": "Answer",
+"text": "Print opens two options: “Print now” sends the numbered template to your printer, “Save as PDF” makes an A4 PDF with the template on page one and the color guide with every swatch and hex code on page two."
+}
+},
+{
+"@type": "Question",
+"name": "Does it work offline and as an app?",
+"acceptedAnswer": {
+"@type": "Answer",
+"text": "Yes. Once opened, it keeps working without internet. On iPhone and iPad choose “Add to Home Screen” from the share menu, on Android or desktop use the browser’s install option. Nothing is uploaded; the only request to another server is the anonymous like counter."
+}
+}
+]
+}
+</script>
 <script>
 // Theme before first paint: stored choice wins, otherwise the system setting.
 (function () {
@@ -329,6 +401,24 @@
     .facts { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 64px; align-items: start; }
   }
 
+  /* FAQ: one question per row, plain disclosure elements; two columns from 900px. */
+  .faq-list { display: grid; border-top: 1px solid var(--border); }
+  .faq-list details { border-bottom: 1px solid var(--border); }
+  .faq-list summary {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    min-height: 60px; padding: 14px 0; cursor: pointer; list-style: none;
+    font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); text-align: left;
+  }
+  .faq-list summary::-webkit-details-marker { display: none; }
+  .faq-list summary svg { flex: none; width: 20px; height: 20px; color: var(--text-mute); transition: transform 0.2s ease; }
+  .faq-list details[open] summary svg { transform: rotate(45deg); }
+  .faq-list summary:hover svg { color: var(--text); }
+  .faq-list p { font-size: 15px; line-height: 1.6; max-width: 62ch; padding: 0 36px 18px 0; }
+  @media (min-width: 900px) {
+    .faq-list { grid-template-columns: 1fr 1fr; column-gap: 48px; border-top: none; }
+    .faq-list details:nth-child(-n+2) { border-top: 1px solid var(--border); }
+  }
+
   /* Support: the one tinted panel on the page. */
   .support {
     display: flex; flex-direction: column; align-items: center; text-align: center; gap: 22px;
@@ -386,6 +476,17 @@
     .steps li:first-child { grid-row: 1 / 3; }
     .steps li:first-child > img { flex: 1; min-height: 0; aspect-ratio: auto; }
     .steps li:not(:first-child) > img { aspect-ratio: 16 / 10; }
+  }
+  /* Tablets in portrait: two columns for the steps and the facts, the first step spans the row as a wide crop. */
+  @media (min-width: 640px) and (max-width: 899px) {
+    .landing { padding: 0 28px 56px; gap: 80px; }
+    .steps { grid-template-columns: 1fr 1fr; }
+    .steps li:first-child { grid-column: 1 / -1; }
+    .steps li:first-child > img { aspect-ratio: 21 / 9; }
+    .facts { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+    .show-row { grid-template-columns: 1fr; }
+    .show-row img { max-height: 520px; object-fit: cover; }
+    .compare-frame { max-height: 520px; aspect-ratio: 16 / 10; }
   }
   @media (max-width: 899px) {
     .coffee-btn .label-long { display: none; }
@@ -951,6 +1052,46 @@
             <p>Add it to your home screen from the share menu. It then opens full screen and works without internet.</p>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="faq reveal" aria-labelledby="faq-title">
+      <div class="section-head">
+        <h2 id="faq-title">Questions and answers</h2>
+      </div>
+      <div class="faq-list">
+        <details>
+          <summary>Which photos work best?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></summary>
+          <p>JPEG and PNG from any device. A clear subject with few busy areas gives fields that are easier to paint; the app scales large photos down by itself.</p>
+        </details>
+        <details>
+          <summary>What do the detail levels mean?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></summary>
+          <p>The number of colors: Kids 8, Easy 16, Standard 24, Detailed 36, Fine 50. Fewer colors mean bigger fields and a quicker painting; more colors stay closer to the photo.</p>
+        </details>
+        <details>
+          <summary>Do I have to stay inside the lines?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></summary>
+          <p>No. The brush paints wherever you put it, like real paint. The number in each field tells you which color belongs there, and picking a color briefly flashes all of its fields.</p>
+        </details>
+        <details>
+          <summary>How do zoom, undo and clear work?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></summary>
+          <p>Pinch with two fingers, or hold Ctrl and scroll with a mouse. The frame button fits the picture to the screen again. Undo keeps the last 30 strokes; Clear needs a second tap within three seconds and can be undone.</p>
+        </details>
+        <details>
+          <summary>Does the Apple Pencil change anything?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></summary>
+          <p>Yes. Pressure changes the stroke width, and touches from your resting hand are ignored while the pencil is drawing. Finger and mouse work the same way without pressure.</p>
+        </details>
+        <details>
+          <summary>Is my progress saved?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></summary>
+          <p>Every stroke is saved on this device automatically and the project appears under “Your projects”. Backup writes a .pbn.json file you can import on another device to continue there.</p>
+        </details>
+        <details>
+          <summary>How do I print the template?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></summary>
+          <p>Print opens two options: “Print now” sends the numbered template to your printer, “Save as PDF” makes an A4 PDF with the template on page one and the color guide with every swatch and hex code on page two.</p>
+        </details>
+        <details>
+          <summary>Does it work offline and as an app?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></summary>
+          <p>Yes. Once opened, it keeps working without internet. On iPhone and iPad choose “Add to Home Screen” from the share menu, on Android or desktop use the browser’s install option. Nothing is uploaded; the only request to another server is the anonymous like counter.</p>
+        </details>
       </div>
     </section>
 

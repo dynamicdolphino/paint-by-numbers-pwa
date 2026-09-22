@@ -4,8 +4,9 @@
 //   print-1.pdf / print-2.pdf          the two pages of the real PDF export
 // `tests/feature-assets.py` turns them into feat-levels.jpg, feat-paint.jpg and feat-print.jpg.
 // Run through a Playwright runner that hands in `page` while `npm start` serves :8000.
-// The whole run takes over a minute; if the runner's call times out (the Playwright MCP does),
-// paste the blocks one after the other — they only share `window.__payload` / `window.__pdfBlob`.
+// The whole run takes about a minute; since the 2026-09-21 worker speed-up it fits into one Playwright MCP
+// call. If a runner times out, paste the blocks one after the other — they only share `window.__payload` / `window.__pdfBlob`.
+// `tests/feature-assets.py` needs Pillow: `~/.pbn-tools-venv/bin/python tests/feature-assets.py` (venv outside the repo).
 async (page) => {
   const out = 'tests/.out/';
   await page.setViewportSize({ width: 1200, height: 760 });

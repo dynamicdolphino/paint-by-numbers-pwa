@@ -263,3 +263,15 @@ Fix: the backup payload is now built **entirely synchronously** from `state.*` (
 
 Second pass the same day, after the user disliked the color-dot icon and asked for the screens after upload: the mark is now a single template field (paper, contour, painted lower half, a number) in `docs/logo.svg`, rasterised by `tests/icons.playwright.js` (icons plus the social preview, both run through the Playwright MCP against `npm start`). Setup got a side panel layout from 900 px with a vertical level list, level descriptions and the CTA inside the panel; the paint tools became three glass groups with a vertical brush-size slider, a live size dot and a "Fit to screen" button. Rule for future icon or preview changes: edit the SVG or the HTML in that spec and rerun it, never hand-edit the PNGs.
 
+---
+
+## 2026-09-22 — FAQ and a tablet breakpoint
+
+**Context:** After the redesign went live the user asked for tablet and phone tuning and for a FAQ so the individual functions are understood.
+
+**Decision / Insight:** A third breakpoint (640 to 899 px) covers tablets in portrait: the desktop grids would be too tight there and the phone stacking wasted the width (a 4:3 photo filled 550 px of height per step). The FAQ is eight native `<details>` items with a plus icon, answers written from the code (undo depth, clear confirmation, pressure and palm rejection, PDF pages), mirrored as `FAQPage` JSON-LD generated from the same list so the two never drift.
+
+**Rationale:** Disclosure elements need no script, work with keyboard and screen readers, and keep the landing short by default. Answers state what the app does, not marketing claims, so every sentence can be checked against the source.
+
+**Impact:** When a function changes (undo depth, presets, print flow), update the FAQ item and the JSON-LD together. Anything new on the landing page should be checked at 375, 768 and 1280 px, not only at the two extremes. The picture pipeline runs again end to end: both Playwright specs through the Playwright MCP, then `~/.pbn-tools-venv/bin/python tests/feature-assets.py` (Pillow lives in that venv outside the repo, the project itself stays dependency-free).
+

@@ -6,6 +6,18 @@ Newest entries **on top**.
 
 ---
 
+## [0.15.1] — 2026-09-22 — FAQ and tablet layout
+
+### Added
+- "Questions and answers" section on the landing page: eight disclosure items (photos, detail levels, painting outside the lines, zoom/undo/clear, Apple Pencil, saving and backup, printing, offline/install), two columns from 900 px. The same questions are in the page as `FAQPage` structured data.
+
+### Changed
+- Tablets in portrait (640 to 899 px): steps in two columns with the first step as a wide 21:9 crop across the row, facts in two columns, showcase pictures and the hero comparison capped in height instead of filling the whole width at 4:3.
+- Landing pictures regenerated through the real pipeline (`tests/example-assets.playwright.js`, `tests/feature-assets.playwright.js`, `tests/feature-assets.py`): the paint-screen picture now shows the 0.15.0 toolbar; `og-image.png` re-rendered from the new example.
+- Service worker cache `pbn-v18`.
+
+---
+
 ## [0.15.0] — 2026-09-22 — Landing page redesign (taste-skill pass)
 
 ### Changed
